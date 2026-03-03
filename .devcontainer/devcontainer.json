@@ -1,0 +1,28 @@
+{
+  "name": "Flutter Dev Container",
+  "image": "cirrusci/flutter:stable",
+  "remoteUser": "root",
+  "workspaceFolder": "/app",
+  "mounts": [
+    {
+      "source": "${localWorkspaceFolder}",
+      "target": "/app",
+      "type": "bind"
+    }
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.flutter",
+        "Dart-Code.dart-code"
+      ],
+      "settings": {
+        "dart.flutterSdkPath": "/sdks/flutter",
+        "dart.sdkPath": "/sdks/flutter/bin/cache/dart-sdk",
+	      "dart.chromePort": 8070
+      }
+    }
+  },
+  "forwardPorts": [8070],
+  "postCreateCommand": "apt-get update && apt-get install -y libgtk-3-dev liblzma-dev libstdc++-12-dev pkg-config && git config --global --add safe.directory /sdks/flutter && flutter config --enable-web --enable-linux-desktop"
+}
