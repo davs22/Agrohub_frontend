@@ -14,7 +14,7 @@ COPY . .
 # Baixa as dependências do projeto
 # Compila o app para a plataforma web
 # Resultado gerado em build/web
-RUN flutter pub get && flutter build web
+RUN cd agrohub_app && flutter pub cache clean && flutter pub get && flutter build web
 
 
 # Inicia uma imagem Nginx
