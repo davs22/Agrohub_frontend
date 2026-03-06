@@ -14,7 +14,13 @@ COPY . .
 # Baixa as dependências do projeto
 # Compila o app para a plataforma web
 # Resultado gerado em build/web
-RUN cd agrohub_app && flutter pub cache clean && flutter pub get && flutter build web
+WORKDIR /app/agrohub_app
+
+# Executa os comandos (o -f garante que não vai pedir confirmação)
+RUN flutter pub cache clean -f \
+    && flutter clean \
+    && flutter pub get \
+    && flutter build web
 
 
 # Inicia uma imagem Nginx
