@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 
-class AppbarComponent extends StatelessWidget implements PreferredSizeWidget {
+class AppBarComponent extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool? centerTitle;
   final List<Widget>? actions;
   final bool? automaticallyImplyLeading;
   final PreferredSizeWidget? tabBar;
 
-  const AppbarComponent(
-      {super.key,
-      required this.title,
-      this.centerTitle,
-      this.actions,
-      this.automaticallyImplyLeading,
-      this.tabBar});
+  const AppBarComponent({super.key, required this.title, this.centerTitle, this.actions, this.automaticallyImplyLeading, this.tabBar});
 
   @override
   Widget build(BuildContext context) {
