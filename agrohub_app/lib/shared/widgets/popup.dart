@@ -1,4 +1,4 @@
-import 'package:agrohub_app/default.config.dart';
+import 'package:agrohub_app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class PopupComponent {
@@ -21,7 +21,7 @@ class PopupComponent {
               child: Text(closeText ?? "Fechar"),
               onPressed: () {
                 Navigator.of(context).pop();
-                onClick!();
+                onClick?.call();
               },
             ),
           ],
