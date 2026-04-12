@@ -10,10 +10,19 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBarComponent(
-        title: 'Inicio',
+      appBar: AppBarComponent(
+        title: 'AgroHub',
+        automaticallyImplyLeading: false,
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              icon: const Icon(Icons.menu),
+            ),
+          ),
+        ],
       ),
-      drawer: DrawerMenuComponent(
+      endDrawer: DrawerMenuComponent(
         headerTitle: 'Dev Senior. Gabriel',
         headerSubtitle: 'gabriel.devsernior@agrohub.com',
         items: [
