@@ -2,8 +2,9 @@ import 'package:agrohub_app/shared/widgets/app_bar.dart';
 import 'package:agrohub_app/shared/widgets/button.dart';
 import 'package:agrohub_app/shared/widgets/drawer_menu.dart';
 import 'package:agrohub_app/shared/widgets/input.dart';
+import 'package:agrohub_app/shared/widgets/text.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginAdmScreen extends StatefulWidget {
   const LoginAdmScreen({super.key});
@@ -48,21 +49,62 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
           ),
         ],
       ),
-
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              InputComponent(
-                emoji: Icons.person,
-                width: 200,
-                height: 200,
-                hint: 'Digite sua senha',
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: SvgPicture.asset(
+                'lib/interface_icons/administrador.svg',
+                width: 110,
+                height: 110,
               ),
-              ButtonComponent(label: 'Login'),
-            ],
-          ),
+            ),
+            const SizedBox(height: 100),
+            const TextComponent(
+              text: 'Administrador',
+              color: Colors.black,
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              aligment: TextAlign.left,
+            ),
+            const SizedBox(height: 12),
+            const InputComponent(
+              emoji: Icons.badge,
+              width: 270,
+              height: 65,
+              label: 'CNPJ/CPF',
+            ),
+            const SizedBox(height: 12),
+            const TextComponent(
+              text: 'Senha',
+              color: Colors.black,
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              aligment: TextAlign.left,
+            ),
+            const SizedBox(height: 12),
+            const InputComponent(
+              emoji: Icons.lock,
+              width: 270,
+              height: 65,
+              label: '8 digitos',
+              ephemeral: true,
+            ),
+            const SizedBox(height: 120),
+            Center(
+              child: ButtonComponent(
+                label: 'Entrar',
+                onPressed: () {},
+                fontSize: 20,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 70,
+                  vertical: 18,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

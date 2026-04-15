@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class TextComponent extends StatelessWidget {
-  const TextComponent({super.key, required this.text, this.color, this.fontSize, this.aligment});
+  const TextComponent({super.key, required this.text, this.color, this.fontSize, this.fontWeight, this.aligment});
 
   final String text;
   final Color? color;
   final double? fontSize;
+  final FontWeight? fontWeight;
   final TextAlign? aligment;
 
   @override
@@ -15,6 +16,7 @@ class TextComponent extends StatelessWidget {
       style: TextStyle(
         color: color,
         fontSize: fontSize,
+        fontWeight: fontWeight,
       ),
       textAlign: aligment,
     );
