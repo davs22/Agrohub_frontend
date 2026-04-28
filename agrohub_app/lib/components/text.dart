@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:agrohub_app/components/component_colors.dart';
+
 class TextComponent extends StatelessWidget {
-  const TextComponent({super.key, required this.text, this.color, this.fontSize, this.fontWeight, this.aligment});
+  const TextComponent({
+    super.key,
+    required this.text,
+    this.color,
+    this.fontSize,
+    this.fontWeight,
+    this.aligment,
+  });
 
   final String text;
   final Color? color;
@@ -14,9 +23,9 @@ class TextComponent extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: fontWeight,
+        color: color ?? componentTextColor,
+        fontSize: fontSize ?? componentLabelFontSize,
+        fontWeight: fontWeight ?? FontWeight.w700,
       ),
       textAlign: aligment,
     );

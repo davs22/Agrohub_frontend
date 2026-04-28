@@ -1,0 +1,186 @@
+import 'package:agrohub_app/components/app_bar.dart';
+import 'package:agrohub_app/components/button.dart';
+import 'package:agrohub_app/components/drawer_menu.dart';
+import 'package:agrohub_app/components/input.dart';
+import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/pages/home_screen.dart';
+import 'package:agrohub_app/pages/login_adm_screen.dart';
+import 'package:agrohub_app/utils/login_validators.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class LoginComercioScreen extends StatefulWidget {
+  const LoginComercioScreen({super.key});
+
+  @override
+  State<LoginComercioScreen> createState() => _LoginComercioScreenState();
+}
+
+class _LoginComercioScreenState extends State<LoginComercioScreen> {
+  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _senhaController = TextEditingController();
+
+  String? _cpfError;
+  String? _senhaError;
+
+  @override
+  void dispose() {
+    _cpfController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+
+  void _validarEEntrar() {
+    final cpfError = LoginValidators.validateCpf(_cpfController.text);
+    final senhaError = LoginValidators.validatePassword(
+      _senhaController.text,
+      minLength: 8,
+    );
+
+    setState(() {
+      _cpfError = cpfError;
+      _senhaError = senhaError;
+    });
+
+    if (cpfError != null || senhaError != null) {
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginAdmScreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBarComponent(
+        title: 'AgroHub',
+        automaticallyImplyLeading: false,
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              icon: const Icon(Icons.menu),
+            ),
+          ),
+        ],
+      ),
+      endDrawer: DrawerMenuComponent(
+        headerTitle: 'Comercio',
+        items: [
+          DrawerItem(
+            title: 'Configuracoes',
+            icon: Icons.settings,
+            onTap: () {
+              Navigator.pop(context);
+              debugPrint('Navegar para Configuracoes');
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: SvgPicture.asset(
+                'lib/interface_icons/fazenda.svg',
+                width: 110,
+                height: 110,
+              ),
+            ),
+            const SizedBox(height: 100),
+            const TextComponent(
+              text: 'Comercio',
+              color: Colors.black,
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              aligment: TextAlign.left,
+            ),
+            const SizedBox(height: 12),
+            InputComponent(
+              emoji: Icons.badge,
+              borderRadius: 20,
+              width: 270,
+              height: 65,
+              hint: 'CPF',
+              controll: _cpfController,
+              typeInput: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                CpfInputFormatter(),
+              ],
+              errorText: _cpfError,
+              eventChange: (_) {
+                if (_cpfError != null) {
+                  setState(() {
+                    _cpfError =
+                        LoginValidators.validateCpf(_cpfController.text);
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 12),
+            const TextComponent(
+              text: 'Senha',
+              color: Colors.black,
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              aligment: TextAlign.left,
+            ),
+            const SizedBox(height: 12),
+            InputComponent(
+              emoji: Icons.lock,
+              borderRadius: 20,
+              width: 270,
+              height: 65,
+              hint: '8 digitos',
+              hintColor: Colors.black.withValues(alpha: 0.5),
+              ephemeral: true,
+              controll: _senhaController,
+              errorText: _senhaError,
+              eventChange: (_) {
+                if (_senhaError != null) {
+                  setState(() {
+                    _senhaError = LoginValidators.validatePassword(
+                      _senhaController.text,
+                      minLength: 8,
+                    );
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 120),
+            Center(
+              child: ButtonComponent(
+                label: 'Entrar',
+                borderRadius: 10,
+                width: 150,
+                height: 50,
+                onPressed: _validarEEntrar,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: TextButton(
+                onPressed: () => debugPrint('Navegar para a tela de registro'),
+                child: const Text(
+                  'Registre-se',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
