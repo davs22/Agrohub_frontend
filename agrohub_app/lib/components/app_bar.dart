@@ -33,9 +33,9 @@ class AppBarComponent extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         title,
         style: const TextStyle(
-          color: componentTextColor,
-          fontSize: componentTitleFontSize,
-          fontWeight: FontWeight.bold,
+          color: Color.fromARGB(255, 0, 0, 0),
+          fontSize: 25,
+          fontWeight: FontWeight.w800,
         ),
       ),
       actions: actions ?? [],

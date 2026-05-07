@@ -3,8 +3,9 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/home_screen.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/login_adm_screen.dart';
+import 'package:agrohub_app/pages/new_pass_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -188,7 +189,11 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
             const SizedBox(height: 20),
             Center(
                 child: TextButton(
-                    onPressed: () => debugPrint('Esqueci minha senha'),
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const NewPassOperadorScreen())),
                     child: const Text(
                       'Esqueci minha senha',
                       style: TextStyle(
