@@ -3,7 +3,7 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/home_screen.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/login_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -18,32 +18,34 @@ class LoginAdmScreen extends StatefulWidget {
 }
 
 class _LoginAdmScreenState extends State<LoginAdmScreen> {
-  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  String? _cpfError;
+  String? _documentoError;
   String? _senhaError;
 
   @override
   void dispose() {
-    _cpfController.dispose();
+    _documentoController.dispose();
     _senhaController.dispose();
     super.dispose();
   }
 
   void _validarEEntrar() {
-    final cpfError = LoginValidators.validateCpf(_cpfController.text);
+    final documentoError = LoginValidators.validateCpfOrCnpj(
+      _documentoController.text,
+    );
     final senhaError = LoginValidators.validatePassword(
       _senhaController.text,
       minLength: 8,
     );
 
     setState(() {
-      _cpfError = cpfError;
+      _documentoError = documentoError;
       _senhaError = senhaError;
     });
 
-    if (cpfError != null || senhaError != null) {
+    if (documentoError != null || senhaError != null) {
       return;
     }
 
@@ -128,21 +130,20 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
               borderRadius: 20,
               width: 270,
               height: 65,
-              hint: 'CPF',
-              controll: _cpfController,
+              hint: 'CNPJ/CPF',
+              controll: _documentoController,
               typeInput: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                CpfInputFormatter(),
+                CpfOrCnpjInputFormatter(),
               ],
-              errorText: _cpfError,
+              errorText: _documentoError,
               eventChange: (_) {
-                if (_cpfError != null) {
-                  setState(() {
-                    _cpfError =
-                        LoginValidators.validateCpf(_cpfController.text);
-                  });
-                }
+                setState(() {
+                  _documentoError = LoginValidators.validateCpfOrCnpj(
+                    _documentoController.text,
+                  );
+                });
               },
             ),
             const SizedBox(height: 12),
