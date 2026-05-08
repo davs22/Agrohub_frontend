@@ -7,14 +7,14 @@ import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class RegisterOperadorScreen extends StatefulWidget {
-  const RegisterOperadorScreen({super.key});
+class EditOperadorScreen extends StatefulWidget {
+  const EditOperadorScreen({super.key});
 
   @override
-  State<RegisterOperadorScreen> createState() => _RegisterOperadorScreenState();
+  State<EditOperadorScreen> createState() => _EditOperadorScreenState();
 }
 
-class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
+class _EditOperadorScreenState extends State<EditOperadorScreen> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _documentoController = TextEditingController();
@@ -52,7 +52,7 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
   void _validarFormulario() {
     final nomeError = LoginValidators.validateRequiredText(
       _nomeController.text,
-      fieldName: 'o nome do comercio',
+      fieldName: 'o nome do operador',
       minLength: 3,
     );
     final documentoError = LoginValidators.validateCpfOrCnpj(
@@ -126,7 +126,7 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: const [
                   TextComponent(
-                    text: 'Registro de Operador',
+                    text: 'Editar Operador',
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
@@ -139,6 +139,27 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
                     padding: const EdgeInsets.only(bottom: 16),
                     children: [
                       const SizedBox(height: 24),
+                      InputComponent(
+                        emoji: Icons.badge,
+                        borderRadius: 4,
+                        width: 400,
+                        height: 45,
+                        hint: 'CPF do operador',
+                        controll: _cpfController,
+                        typeInput: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          CpfInputFormatter(),
+                        ],
+                        errorText: _cpfError,
+                        eventChange: (_) {
+                          setState(() {
+                            _cpfError = LoginValidators.validateCpf(
+                                _cpfController.text);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
                       InputComponent(
                         emoji: Icons.admin_panel_settings,
                         borderRadius: 4,
@@ -187,7 +208,7 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
                         borderRadius: 4,
                         width: 400,
                         height: 45,
-                        hint: 'CPF',
+                        hint: 'Novo CPF',
                         controll: _cpfController,
                         typeInput: TextInputType.number,
                         inputFormatters: [

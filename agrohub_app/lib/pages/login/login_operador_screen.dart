@@ -4,7 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
-import 'package:agrohub_app/pages/registro/new_pass_operador_screen.dart';
+import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

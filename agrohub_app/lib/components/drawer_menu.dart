@@ -1,4 +1,6 @@
+import 'package:agrohub_app/pages/edit/edit_operador_screen.dart';
 import 'package:agrohub_app/pages/registro/register_operador_screen.dart';
+import 'package:agrohub_app/pages/view/view_operador_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:agrohub_app/components/component_colors.dart';
@@ -6,8 +8,8 @@ import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/login/login_adm_screen.dart';
 import 'package:agrohub_app/pages/login/login_comercio_screen.dart';
 import 'package:agrohub_app/pages/login/login_operador_screen.dart';
-import 'package:agrohub_app/pages/registro/new_pass_adm_screen.dart';
-import 'package:agrohub_app/pages/registro/new_pass_operador_screen.dart';
+import 'package:agrohub_app/pages/edit/new_pass_adm_screen.dart';
+import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
 import 'package:agrohub_app/pages/registro/register_comercio_screen.dart';
 import 'package:agrohub_app/pages/registro/register_fazenda_screen.dart';
 
@@ -135,6 +137,13 @@ class DrawerMenuComponent extends StatelessWidget {
         },
       ),
       DrawerItem(
+        title: 'Lista de operadores',
+        icon: Icons.list,
+        onTap: () {
+          _navigateTo(context, const ViewOperadorScreen());
+        },
+      ),
+      DrawerItem(
         title: 'nova senha admin',
         icon: Icons.lock_reset,
         onTap: () {
@@ -169,6 +178,13 @@ class DrawerMenuComponent extends StatelessWidget {
         icon: Icons.person_add,
         onTap: () {
           _navigateTo(context, const RegisterOperadorScreen());
+        },
+      ),
+      DrawerItem(
+        title: 'Editar operador',
+        icon: Icons.edit,
+        onTap: () {
+          _navigateTo(context, const EditOperadorScreen());
         },
       ),
       DrawerItem(
