@@ -1,6 +1,24 @@
 import 'package:flutter/services.dart';
 
 class LoginValidators {
+  static String? validateRequiredText(
+    String value, {
+    required String fieldName,
+    int minLength = 2,
+  }) {
+    final trimmed = value.trim();
+
+    if (trimmed.isEmpty) {
+      return 'Informe $fieldName.';
+    }
+
+    if (trimmed.length < minLength) {
+      return '$fieldName deve ter no minimo $minLength caracteres.';
+    }
+
+    return null;
+  }
+
   static String? validatePassword(String value, {required int minLength}) {
     if (value.trim().isEmpty) {
       return 'Informe a senha.';
@@ -47,6 +65,130 @@ class LoginValidators {
     }
 
     return 'Digite um CPF com 11 numeros ou um CNPJ com 14 numeros.';
+  }
+
+  static String? validatePositiveNumber(
+    String value, {
+    required String fieldName,
+    bool allowDecimal = true,
+  }) {
+    final normalized = value.trim().replaceAll(',', '.');
+
+    if (normalized.isEmpty) {
+      return 'Informe $fieldName.';
+    }
+
+    final regex = allowDecimal
+        ? RegExp(r'^\d+([.]\d+)?$')
+        : RegExp(r'^\d+$');
+
+    if (!regex.hasMatch(normalized)) {
+      return allowDecimal
+          ? '$fieldName deve conter apenas numeros.'
+          : '$fieldName deve conter apenas numeros inteiros.';
+    }
+
+    final parsed = double.tryParse(normalized);
+    if (parsed == null || parsed <= 0) {
+      return '$fieldName deve ser maior que zero.';
+    }
+
+    return null;
+  }
+
+  static String? validateLatitude(String value) {
+    final normalized = value.trim().replaceAll(',', '.');
+
+    if (normalized.isEmpty) {
+      return 'Informe a latitude.';
+    }
+
+    final latitude = double.tryParse(normalized);
+    if (latitude == null) {
+      return 'Digite uma latitude valida.';
+    }
+
+    if (latitude < -90 || latitude > 90) {
+      return 'Latitude deve estar entre -90 e 90.';
+    }
+
+    return null;
+  }
+
+  static String? validateLongitude(String value) {
+    final normalized = value.trim().replaceAll(',', '.');
+
+    if (normalized.isEmpty) {
+      return 'Informe a longitude.';
+    }
+
+    final longitude = double.tryParse(normalized);
+    if (longitude == null) {
+      return 'Digite uma longitude valida.';
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return 'Longitude deve estar entre -180 e 180.';
+    }
+
+    return null;
+  }
+
+  static String? validatePhone(String value) {
+    final digits = _onlyDigits(value);
+
+    if (digits.isEmpty) {
+      return 'Informe o telefone.';
+    }
+
+    if (digits.length < 10 || digits.length > 11) {
+      return 'Digite um telefone com DDD valido.';
+    }
+
+    return null;
+  }
+
+  static String? validateCep(String value) {
+    final digits = _onlyDigits(value);
+
+    if (digits.isEmpty) {
+      return 'Informe o CEP.';
+    }
+
+    if (digits.length != 8) {
+      return 'Digite um CEP com 8 numeros.';
+    }
+
+    return null;
+  }
+
+  static String? validateStreet(String value) {
+    final trimmed = value.trim();
+
+    if (trimmed.isEmpty) {
+      return 'Informe a rua.';
+    }
+
+    if (trimmed.length < 3) {
+      return 'Rua deve ter no minimo 3 caracteres.';
+    }
+
+    return null;
+  }
+
+  static String? validateEmail(String value) {
+    final trimmed = value.trim();
+
+    if (trimmed.isEmpty) {
+      return 'Informe o email.';
+    }
+
+    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!emailRegex.hasMatch(trimmed)) {
+      return 'Digite um email valido.';
+    }
+
+    return null;
   }
 
   static String? validateCnpj(String value) {
@@ -116,6 +258,21 @@ class LoginValidators {
       } else if (index == 8) {
         buffer.write('/');
       } else if (index == 12) {
+        buffer.write('-');
+      }
+
+      buffer.write(digits[index]);
+    }
+
+    return buffer.toString();
+  }
+
+  static String formatCep(String value) {
+    final digits = _onlyDigits(value);
+    final buffer = StringBuffer();
+
+    for (var index = 0; index < digits.length && index < 8; index++) {
+      if (index == 5) {
         buffer.write('-');
       }
 
@@ -205,6 +362,55 @@ class CpfOrCnpjInputFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final formatted = LoginValidators.formatCpfOrCnpj(newValue.text);
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class PhoneInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final limited = digits.length > 11 ? digits.substring(0, 11) : digits;
+    final buffer = StringBuffer();
+
+    for (var index = 0; index < limited.length; index++) {
+      if (index == 0) {
+        buffer.write('(');
+      }
+      if (index == 2) {
+        buffer.write(') ');
+      }
+      if (limited.length > 10 && index == 7) {
+        buffer.write('-');
+      } else if (limited.length <= 10 && index == 6) {
+        buffer.write('-');
+      }
+
+      buffer.write(limited[index]);
+    }
+
+    final formatted = buffer.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class CepInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final formatted = LoginValidators.formatCep(newValue.text);
 
     return TextEditingValue(
       text: formatted,

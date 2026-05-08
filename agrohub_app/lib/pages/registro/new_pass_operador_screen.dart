@@ -5,7 +5,6 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/login_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -155,32 +154,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Operador',
-        items: [
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-          DrawerItem(
-            title: 'Logout',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginOperadorScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      endDrawer: const DrawerMenuComponent(headerTitle: 'Operador'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(

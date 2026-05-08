@@ -2,17 +2,16 @@ import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/login_adm_screen.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeAdmScreen extends StatefulWidget {
+  const HomeAdmScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeAdmScreenState();
+  State<HomeAdmScreen> createState() => _HomeAdmScreenState();
 }
 
-class _HomeAdmScreenState extends State<HomeScreen> {
+class _HomeAdmScreenState extends State<HomeAdmScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,32 +27,7 @@ class _HomeAdmScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        items: [
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-          DrawerItem(
-            title: 'Logout',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginAdmScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(

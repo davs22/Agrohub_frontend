@@ -4,8 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
-import 'package:agrohub_app/pages/login_adm_screen.dart';
-import 'package:agrohub_app/pages/new_pass_operador_screen.dart';
+import 'package:agrohub_app/pages/registro/new_pass_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +49,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
     );
   }
 
@@ -69,40 +68,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Operador',
-        items: [
-          DrawerItem(
-            title: 'Inicio',
-            icon: Icons.home,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-          DrawerItem(
-            title: 'Administrador',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginAdmScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      endDrawer: const DrawerMenuComponent(headerTitle: 'Operador'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
         child: Column(

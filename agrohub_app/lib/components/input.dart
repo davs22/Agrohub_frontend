@@ -98,10 +98,7 @@ class _InputComponentState extends State<InputComponent> {
               controller: widget.controll,
               keyboardType: widget.typeInput,
               textAlignVertical: TextAlignVertical.center,
-              inputFormatters: widget.inputFormatters ??
-                  (widget.typeInput != null
-                      ? [FilteringTextInputFormatter.digitsOnly]
-                      : null),
+              inputFormatters: widget.inputFormatters,
               style: const TextStyle(
                 color: componentTextColor,
                 fontSize: componentFieldFontSize,

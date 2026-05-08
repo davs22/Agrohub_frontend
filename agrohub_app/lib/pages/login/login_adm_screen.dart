@@ -4,7 +4,6 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
-import 'package:agrohub_app/pages/login_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,7 +50,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
     );
   }
 
@@ -70,40 +69,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        items: [
-          DrawerItem(
-            title: 'Inicio',
-            icon: Icons.home,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-          DrawerItem(
-            title: 'Operador',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginOperadorScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
         child: Column(

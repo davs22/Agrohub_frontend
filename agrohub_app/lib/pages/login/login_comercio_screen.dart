@@ -3,7 +3,8 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/login_adm_screen.dart';
+import 'package:agrohub_app/pages/login/login_operador_screen.dart';
+import 'package:agrohub_app/pages/registro/register_comercio_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +51,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const LoginAdmScreen()),
+      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
     );
   }
 
@@ -69,19 +70,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Comercio',
-        items: [
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-        ],
-      ),
+      endDrawer: const DrawerMenuComponent(headerTitle: 'Comercio'),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
         child: Column(
@@ -167,7 +156,12 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
             const SizedBox(height: 20),
             Center(
               child: TextButton(
-                onPressed: () => debugPrint('Navegar para a tela de registro'),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RegisterComercioScreen(),
+                  ),
+                ),
                 child: const Text(
                   'Registre-se',
                   style: TextStyle(
