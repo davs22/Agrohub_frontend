@@ -132,7 +132,13 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Comercio',
+        visibleOptions: {
+          DrawerMenuOption.registrarComercio,
+          DrawerMenuOption.configuracoes,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(

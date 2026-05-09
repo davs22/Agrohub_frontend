@@ -1,5 +1,4 @@
 import 'package:agrohub_app/components/app_bar.dart';
-import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +26,17 @@ class _ViewOperadorScreenState extends State<ViewOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Administrador',
+        visibleOptions: {
+          DrawerMenuOption.homeAdmin,
+          DrawerMenuOption.listaOperadores,
+          DrawerMenuOption.registrarOperador,
+          DrawerMenuOption.editarOperador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(

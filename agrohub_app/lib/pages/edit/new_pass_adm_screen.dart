@@ -158,7 +158,13 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Administrador',
+        visibleOptions: {
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(

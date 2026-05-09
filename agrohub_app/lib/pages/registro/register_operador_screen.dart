@@ -114,7 +114,17 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Administrador',
+        visibleOptions: {
+          DrawerMenuOption.homeAdmin,
+          DrawerMenuOption.listaOperadores,
+          DrawerMenuOption.registrarOperador,
+          DrawerMenuOption.editarOperador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(

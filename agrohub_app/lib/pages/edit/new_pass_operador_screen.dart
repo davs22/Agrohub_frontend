@@ -154,7 +154,13 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Operador'),
+     endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Operador',
+        visibleOptions: {
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SizedBox(

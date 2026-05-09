@@ -119,7 +119,13 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Comercio',
+        visibleOptions: {
+          DrawerMenuOption.registrarFazenda,
+          DrawerMenuOption.configuracoes,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(

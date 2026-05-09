@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/modules/http_login.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
@@ -23,6 +24,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   String? _cpfError;
   String? _senhaError;
+  //bool _isLoading = false;
 
   @override
   void dispose() {
@@ -31,11 +33,14 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     super.dispose();
   }
 
-  void _validarEEntrar() {
-    final cpfError = LoginValidators.validateCpf(_cpfController.text);
+  Future<void> _validarEEntrar() async {
+    // 1. Mantemos a validação local (para o protótipo parecer real se digitarem errado)
+    final cpfError = LoginValidators.validateCpf(
+      _cpfController.text,
+    );
     final senhaError = LoginValidators.validatePassword(
       _senhaController.text,
-      minLength: 6,
+      minLength: 8,
     );
 
     setState(() {
@@ -47,9 +52,51 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       return;
     }
 
-    Navigator.push(
+    /* ==========================================
+       INÍCIO DO CÓDIGO COMENTADO (API REAL)
+       (Descomenta isto quando o backend estiver pronto)
+    =============================================
+    
+    final result = await loginRequest(
+      _documentoController.text,
+      _senhaController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
+
+    if (result.token == null) {
+      return;
+    }
+    
+    ============================================= */
+
+
+    // ==========================================
+    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
+    // ==========================================
+
+    // Mostra um aviso visual de sucesso
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
+    );
+
+    // Espera 1 segundo para dar a sensação de que está a carregar algo
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) {
+      return;
+    }
+
+    // Navega diretamente para a próxima tela ignorando o token
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
     );
   }
 
@@ -68,7 +115,15 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Operador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Comercio',
+        visibleOptions: {
+          DrawerMenuOption.novaSenhaOperador,
+          DrawerMenuOption.administrador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
         child: Column(
@@ -149,6 +204,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                 borderRadius: 10,
                 width: 150,
                 height: 50,
+                //isDisabled: _isLoading,
                 onPressed: _validarEEntrar,
               ),
             ),

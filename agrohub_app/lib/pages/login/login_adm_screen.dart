@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/modules/http_login.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
 
   String? _documentoError;
   String? _senhaError;
+ //bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,7 +32,8 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
     super.dispose();
   }
 
-  void _validarEEntrar() {
+ Future<void> _validarEEntrar() async {
+    // 1. Mantemos a validação local (para o protótipo parecer real se digitarem errado)
     final documentoError = LoginValidators.validateCpfOrCnpj(
       _documentoController.text,
     );
@@ -48,7 +51,49 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
       return;
     }
 
-    Navigator.push(
+    /* ==========================================
+       INÍCIO DO CÓDIGO COMENTADO (API REAL)
+       (Descomenta isto quando o backend estiver pronto)
+    =============================================
+    
+    final result = await loginRequest(
+      _documentoController.text,
+      _senhaController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
+
+    if (result.token == null) {
+      return;
+    }
+    
+    ============================================= */
+
+
+    // ==========================================
+    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
+    // ==========================================
+
+    // Mostra um aviso visual de sucesso
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
+    );
+
+    // Espera 1 segundo para dar a sensação de que está a carregar algo
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) {
+      return;
+    }
+
+    // Navega diretamente para a próxima tela ignorando o token
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
     );
@@ -69,7 +114,15 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
           ),
         ],
       ),
-      endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Administrador',
+        visibleOptions: {
+          DrawerMenuOption.novaSenhaAdmin,
+          DrawerMenuOption.operador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
         child: Column(
@@ -149,6 +202,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
                 borderRadius: 10,
                 width: 150,
                 height: 50,
+                //isDisabled: _isLoading,
                 onPressed: _validarEEntrar,
               ),
             ),
