@@ -3,37 +3,40 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/modules/http_login.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
-import 'package:agrohub_app/pages/login_operador_screen.dart';
+import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class LoginAdmScreen extends StatefulWidget {
-  const LoginAdmScreen({super.key});
+class LoginOperadorScreen extends StatefulWidget {
+  const LoginOperadorScreen({super.key});
 
   @override
-  State<LoginAdmScreen> createState() => _LoginAdmScreenState();
+  State<LoginOperadorScreen> createState() => _LoginOperadorScreenState();
 }
 
-class _LoginAdmScreenState extends State<LoginAdmScreen> {
-  final TextEditingController _documentoController = TextEditingController();
+class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
+  final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  String? _documentoError;
+  String? _cpfError;
   String? _senhaError;
+  //bool _isLoading = false;
 
   @override
   void dispose() {
-    _documentoController.dispose();
+    _cpfController.dispose();
     _senhaController.dispose();
     super.dispose();
   }
 
-  void _validarEEntrar() {
-    final documentoError = LoginValidators.validateCpfOrCnpj(
-      _documentoController.text,
+  Future<void> _validarEEntrar() async {
+    // 1. Mantemos a validação local (para o protótipo parecer real se digitarem errado)
+    final cpfError = LoginValidators.validateCpf(
+      _cpfController.text,
     );
     final senhaError = LoginValidators.validatePassword(
       _senhaController.text,
@@ -41,17 +44,59 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
     );
 
     setState(() {
-      _documentoError = documentoError;
+      _cpfError = cpfError;
       _senhaError = senhaError;
     });
 
-    if (documentoError != null || senhaError != null) {
+    if (cpfError != null || senhaError != null) {
       return;
     }
 
-    Navigator.push(
+    /* ==========================================
+       INÍCIO DO CÓDIGO COMENTADO (API REAL)
+       (Descomenta isto quando o backend estiver pronto)
+    =============================================
+    
+    final result = await loginRequest(
+      _documentoController.text,
+      _senhaController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
+
+    if (result.token == null) {
+      return;
+    }
+    
+    ============================================= */
+
+
+    // ==========================================
+    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
+    // ==========================================
+
+    // Mostra um aviso visual de sucesso
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
+    );
+
+    // Espera 1 segundo para dar a sensação de que está a carregar algo
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) {
+      return;
+    }
+
+    // Navega diretamente para a próxima tela ignorando o token
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
     );
   }
 
@@ -70,39 +115,14 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        items: [
-          DrawerItem(
-            title: 'Inicio',
-            icon: Icons.home,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-          DrawerItem(
-            title: 'Operador',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginOperadorScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Comercio',
+        visibleOptions: {
+          DrawerMenuOption.novaSenhaOperador,
+          DrawerMenuOption.administrador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
@@ -111,14 +131,14 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
           children: [
             Center(
               child: SvgPicture.asset(
-                'lib/interface_icons/administrador.svg',
+                'lib/interface_icons/operador.svg',
                 width: 110,
                 height: 110,
               ),
             ),
             const SizedBox(height: 100),
             const TextComponent(
-              text: 'Administrador',
+              text: 'Operador',
               color: Colors.black,
               fontSize: 25,
               fontWeight: FontWeight.bold,
@@ -130,20 +150,21 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
               borderRadius: 20,
               width: 270,
               height: 65,
-              hint: 'CNPJ/CPF',
-              controll: _documentoController,
+              hint: 'CPF',
+              controll: _cpfController,
               typeInput: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                CpfOrCnpjInputFormatter(),
+                CpfInputFormatter(),
               ],
-              errorText: _documentoError,
+              errorText: _cpfError,
               eventChange: (_) {
-                setState(() {
-                  _documentoError = LoginValidators.validateCpfOrCnpj(
-                    _documentoController.text,
-                  );
-                });
+                if (_cpfError != null) {
+                  setState(() {
+                    _cpfError =
+                        LoginValidators.validateCpf(_cpfController.text);
+                  });
+                }
               },
             ),
             const SizedBox(height: 12),
@@ -160,7 +181,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
               borderRadius: 20,
               width: 270,
               height: 65,
-              hint: '8 digitos',
+              hint: '6 digitos',
               hintColor: Colors.black.withValues(alpha: 0.5),
               ephemeral: true,
               controll: _senhaController,
@@ -170,7 +191,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
                   setState(() {
                     _senhaError = LoginValidators.validatePassword(
                       _senhaController.text,
-                      minLength: 8,
+                      minLength: 6,
                     );
                   });
                 }
@@ -183,9 +204,26 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
                 borderRadius: 10,
                 width: 150,
                 height: 50,
+                //isDisabled: _isLoading,
                 onPressed: _validarEEntrar,
               ),
             ),
+            const SizedBox(height: 20),
+            Center(
+                child: TextButton(
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const NewPassOperadorScreen())),
+                    child: const Text(
+                      'Esqueci minha senha',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ))),
           ],
         ),
       ),

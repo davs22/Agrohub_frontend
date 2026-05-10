@@ -3,25 +3,27 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/login_adm_screen.dart';
+import 'package:agrohub_app/modules/http_login.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class LoginComercioScreen extends StatefulWidget {
-  const LoginComercioScreen({super.key});
+class LoginAdmScreen extends StatefulWidget {
+  const LoginAdmScreen({super.key});
 
   @override
-  State<LoginComercioScreen> createState() => _LoginComercioScreenState();
+  State<LoginAdmScreen> createState() => _LoginAdmScreenState();
 }
 
-class _LoginComercioScreenState extends State<LoginComercioScreen> {
+class _LoginAdmScreenState extends State<LoginAdmScreen> {
   final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
   String? _documentoError;
   String? _senhaError;
+ //bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,7 +32,8 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
     super.dispose();
   }
 
-  void _validarEEntrar() {
+ Future<void> _validarEEntrar() async {
+    // 1. Mantemos a validação local (para o protótipo parecer real se digitarem errado)
     final documentoError = LoginValidators.validateCpfOrCnpj(
       _documentoController.text,
     );
@@ -48,9 +51,51 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
       return;
     }
 
-    Navigator.push(
+    /* ==========================================
+       INÍCIO DO CÓDIGO COMENTADO (API REAL)
+       (Descomenta isto quando o backend estiver pronto)
+    =============================================
+    
+    final result = await loginRequest(
+      _documentoController.text,
+      _senhaController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
+
+    if (result.token == null) {
+      return;
+    }
+    
+    ============================================= */
+
+
+    // ==========================================
+    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
+    // ==========================================
+
+    // Mostra um aviso visual de sucesso
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
+    );
+
+    // Espera 1 segundo para dar a sensação de que está a carregar algo
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) {
+      return;
+    }
+
+    // Navega diretamente para a próxima tela ignorando o token
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginAdmScreen()),
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
     );
   }
 
@@ -69,18 +114,14 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Comercio',
-        items: [
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-        ],
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Administrador',
+        visibleOptions: {
+          DrawerMenuOption.novaSenhaAdmin,
+          DrawerMenuOption.operador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
@@ -89,14 +130,14 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           children: [
             Center(
               child: SvgPicture.asset(
-                'lib/interface_icons/fazenda.svg',
+                'lib/interface_icons/administrador.svg',
                 width: 110,
                 height: 110,
               ),
             ),
             const SizedBox(height: 100),
             const TextComponent(
-              text: 'Comercio',
+              text: 'Administrador',
               color: Colors.black,
               fontSize: 25,
               fontWeight: FontWeight.bold,
@@ -161,21 +202,8 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
                 borderRadius: 10,
                 width: 150,
                 height: 50,
+                //isDisabled: _isLoading,
                 onPressed: _validarEEntrar,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: TextButton(
-                onPressed: () => debugPrint('Navegar para a tela de registro'),
-                child: const Text(
-                  'Registre-se',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
               ),
             ),
           ],

@@ -5,19 +5,19 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/login_operador_screen.dart';
+import 'package:agrohub_app/pages/login/login_adm_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class NewPassOperadorScreen extends StatefulWidget {
-  const NewPassOperadorScreen({super.key});
+class NewPassAdmScreen extends StatefulWidget {
+  const NewPassAdmScreen({super.key});
 
   @override
-  State<NewPassOperadorScreen> createState() => _NewPassOperadorScreenState();
+  State<NewPassAdmScreen> createState() => _NewPassAdmScreenState();
 }
 
-class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
+class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
   final TextEditingController _codigoController = TextEditingController();
@@ -76,7 +76,10 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
       ),
     );
 
-    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginAdmScreen()),
+    );
   }
 
   void _enviarCodigo() {
@@ -155,31 +158,12 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
           ),
         ],
       ),
-      endDrawer: DrawerMenuComponent(
-        headerTitle: 'Operador',
-        items: [
-          DrawerItem(
-            title: 'Configuracoes',
-            icon: Icons.settings,
-            onTap: () {
-              Navigator.pop(context);
-              debugPrint('Navegar para Configuracoes');
-            },
-          ),
-          DrawerItem(
-            title: 'Logout',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginOperadorScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+      endDrawer: const DrawerMenuComponent(
+        headerTitle: 'Administrador',
+        visibleOptions: {
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -192,7 +176,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const TextComponent(
-                    text: 'Redefinir senha de operador',
+                    text: 'Redefinir senha de adm',
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
@@ -217,17 +201,17 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                 borderRadius: 20,
                 width: 270,
                 height: 65,
-                hint: 'CPF',
+                hint: 'CNPJ/CPF',
                 controll: _cpfController,
                 typeInput: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
-                  CpfInputFormatter(),
+                  CpfOrCnpjInputFormatter(),
                 ],
                 errorText: _cpfError,
                 eventChange: (_) {
                   setState(() {
-                    _cpfError = LoginValidators.validateCpf(_cpfController.text);
+                    _cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
                   });
                 },
               ),
