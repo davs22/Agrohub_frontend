@@ -37,61 +37,63 @@ class _ViewOperadorScreenState extends State<ViewOperadorScreen> {
           DrawerMenuOption.logout,
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(left: 15),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      TextComponent(
-                        text: 'Operadores',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 15),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
+                        TextComponent(
+                          text: 'Operadores',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: 10, // Substitua pelo número real de operadores
-                  itemBuilder: (context, index) {
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Id do Operador: $index', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('CNPJ/CPF do Comercio: 123.456.789-00', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Nome: Operador $index', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('CPF: 123.456.789-00', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Telefone: (11) 98765-4321', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Email: operador$index@example.com', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Status: Ativo', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Data de registro: 01/01/2024', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Última atualização: 01/02/2024', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Status Sync: Sincronizado', style: const TextStyle(fontWeight: FontWeight.bold)),
-
-                        ],
-                      ),
-                    );
-                  },
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: 10, // Substitua pelo número real de operadores
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Id do Operador: $index', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('CNPJ/CPF do Comercio: 123.456.789-00', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Nome: Operador $index', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('CPF: 123.456.789-00', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Telefone: (11) 98765-4321', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Email: operador$index@example.com', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Status: Ativo', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Data de registro: 01/01/2024', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Última atualização: 01/02/2024', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Status Sync: Sincronizado', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],),
+              ],
+            ),
+          ),
         ),
       ),
     );

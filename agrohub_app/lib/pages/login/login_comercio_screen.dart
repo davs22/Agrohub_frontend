@@ -76,14 +76,14 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
     
     ============================================= */
 
-
     // ==========================================
     // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
     // ==========================================
 
     // Mostra um aviso visual de sucesso
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
+      const SnackBar(
+          content: Text('Login simulado com sucesso! (Modo Protótipo)')),
     );
 
     // Espera 1 segundo para dar a sensação de que está a carregar algo
@@ -123,109 +123,115 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           DrawerMenuOption.registrarFazenda,
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: SvgPicture.asset(
-                'lib/interface_icons/fazenda.svg',
-                width: 110,
-                height: 110,
-              ),
-            ),
-            const SizedBox(height: 100),
-            const TextComponent(
-              text: 'Comercio',
-              color: Colors.black,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              aligment: TextAlign.left,
-            ),
-            const SizedBox(height: 12),
-            InputComponent(
-              emoji: Icons.badge,
-              borderRadius: 20,
-              width: 270,
-              height: 65,
-              hint: 'CNPJ/CPF',
-              controll: _documentoController,
-              typeInput: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                CpfOrCnpjInputFormatter(),
+      body: SafeArea(
+        // O SingleChildScrollView é o herói que vai resolver o erro do ecrã amarelo e preto!
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: SvgPicture.asset(
+                    'lib/interface_icons/fazenda.svg',
+                    width: 110,
+                    height: 110,
+                  ),
+                ),
+                // Reduzi um pouco este SizedBox (era 100) para ajudar no layout em ecrãs menores
+                const SizedBox(height: 60), 
+                const TextComponent(
+                  text: 'Comercio',
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  aligment: TextAlign.left,
+                ),
+                const SizedBox(height: 12),
+                InputComponent(
+                  emoji: Icons.badge,
+                  borderRadius: 20,
+                  width: 270,
+                  height: 65,
+                  hint: 'CNPJ/CPF',
+                  controll: _documentoController,
+                  typeInput: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    CpfOrCnpjInputFormatter(),
+                  ],
+                  errorText: _documentoError,
+                  eventChange: (_) {
+                    setState(() {
+                      _documentoError = LoginValidators.validateCpfOrCnpj(
+                        _documentoController.text,
+                      );
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                const TextComponent(
+                  text: 'Senha',
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  aligment: TextAlign.left,
+                ),
+                const SizedBox(height: 12),
+                InputComponent(
+                  emoji: Icons.lock,
+                  borderRadius: 20,
+                  width: 270,
+                  height: 65,
+                  hint: '8 digitos',
+                  hintColor: Colors.black.withValues(alpha: 0.5),
+                  ephemeral: true,
+                  controll: _senhaController,
+                  errorText: _senhaError,
+                  eventChange: (_) {
+                    if (_senhaError != null) {
+                      setState(() {
+                        _senhaError = LoginValidators.validatePassword(
+                          _senhaController.text,
+                          minLength: 8,
+                        );
+                      });
+                    }
+                  },
+                ),
+                // Reduzi este espaço também (era 120) para os botões ficarem mais visíveis
+                const SizedBox(height: 60), 
+                Center(
+                  child: ButtonComponent(
+                    label: 'Entrar',
+                    borderRadius: 10,
+                    width: 150,
+                    height: 50,
+                    onPressed: _validarEEntrar,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterComercioScreen(),
+                      ),
+                    ),
+                    child: const Text(
+                      'Registre-se',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
               ],
-              errorText: _documentoError,
-              eventChange: (_) {
-                setState(() {
-                  _documentoError = LoginValidators.validateCpfOrCnpj(
-                    _documentoController.text,
-                  );
-                });
-              },
             ),
-            const SizedBox(height: 12),
-            const TextComponent(
-              text: 'Senha',
-              color: Colors.black,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              aligment: TextAlign.left,
-            ),
-            const SizedBox(height: 12),
-            InputComponent(
-              emoji: Icons.lock,
-              borderRadius: 20,
-              width: 270,
-              height: 65,
-              hint: '8 digitos',
-              hintColor: Colors.black.withValues(alpha: 0.5),
-              ephemeral: true,
-              controll: _senhaController,
-              errorText: _senhaError,
-              eventChange: (_) {
-                if (_senhaError != null) {
-                  setState(() {
-                    _senhaError = LoginValidators.validatePassword(
-                      _senhaController.text,
-                      minLength: 8,
-                    );
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 120),
-            Center(
-              child: ButtonComponent(
-                label: 'Entrar',
-                borderRadius: 10,
-                width: 150,
-                height: 50,
-                //isDisabled: _isLoading,
-                onPressed: _validarEEntrar,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RegisterComercioScreen(),
-                  ),
-                ),
-                child: const Text(
-                  'Registre-se',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -4,7 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/modules/http_login.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart'; // Mantive caso uses depois
 import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +58,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     =============================================
     
     final result = await loginRequest(
-      _documentoController.text,
+      _documentoController.text, // (Atenção: na API real, lembra-te de trocar isto para _cpfController.text)
       _senhaController.text,
     );
 
@@ -76,7 +76,6 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     
     ============================================= */
 
-
     // ==========================================
     // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
     // ==========================================
@@ -93,10 +92,12 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       return;
     }
 
-    // Navega diretamente para a próxima tela ignorando o token
+    // NAVEGAÇÃO: Notei que no teu código original ele estava a navegar para a própria LoginOperadorScreen.
+    // Presumo que depois do login ele deva ir para uma "Home do Operador" ou para a "Home Admin".
+    // Por agora, deixei a apontar para a HomeAdmScreen só para sair da tela de login, mas podes alterar depois!
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()), 
     );
   }
 
@@ -124,98 +125,104 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
           DrawerMenuOption.logout,
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: SvgPicture.asset(
-                'lib/interface_icons/operador.svg',
-                width: 110,
-                height: 110,
-              ),
-            ),
-            const SizedBox(height: 100),
-            const TextComponent(
-              text: 'Operador',
-              color: Colors.black,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              aligment: TextAlign.left,
-            ),
-            const SizedBox(height: 12),
-            InputComponent(
-              emoji: Icons.badge,
-              borderRadius: 20,
-              width: 270,
-              height: 65,
-              hint: 'CPF',
-              controll: _cpfController,
-              typeInput: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                CpfInputFormatter(),
-              ],
-              errorText: _cpfError,
-              eventChange: (_) {
-                if (_cpfError != null) {
-                  setState(() {
-                    _cpfError =
-                        LoginValidators.validateCpf(_cpfController.text);
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-            const TextComponent(
-              text: 'Senha',
-              color: Colors.black,
-              fontSize: 25,
-              fontWeight: FontWeight.bold,
-              aligment: TextAlign.left,
-            ),
-            const SizedBox(height: 12),
-            InputComponent(
-              emoji: Icons.lock,
-              borderRadius: 20,
-              width: 270,
-              height: 65,
-              hint: '6 digitos',
-              hintColor: Colors.black.withValues(alpha: 0.5),
-              ephemeral: true,
-              controll: _senhaController,
-              errorText: _senhaError,
-              eventChange: (_) {
-                if (_senhaError != null) {
-                  setState(() {
-                    _senhaError = LoginValidators.validatePassword(
-                      _senhaController.text,
-                      minLength: 6,
-                    );
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 120),
-            Center(
-              child: ButtonComponent(
-                label: 'Entrar',
-                borderRadius: 10,
-                width: 150,
-                height: 50,
-                //isDisabled: _isLoading,
-                onPressed: _validarEEntrar,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-                child: TextButton(
+      // MUDANÇAS APLICADAS AQUI: SafeArea + SingleChildScrollView
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: SvgPicture.asset(
+                    'lib/interface_icons/operador.svg',
+                    width: 110,
+                    height: 110,
+                  ),
+                ),
+                // Reduzi de 100 para 60 para libertar espaço
+                const SizedBox(height: 60),
+                const TextComponent(
+                  text: 'Operador',
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  aligment: TextAlign.left,
+                ),
+                const SizedBox(height: 12),
+                InputComponent(
+                  emoji: Icons.badge,
+                  borderRadius: 20,
+                  width: 270,
+                  height: 65,
+                  hint: 'CPF',
+                  controll: _cpfController,
+                  typeInput: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    CpfInputFormatter(),
+                  ],
+                  errorText: _cpfError,
+                  eventChange: (_) {
+                    if (_cpfError != null) {
+                      setState(() {
+                        _cpfError =
+                            LoginValidators.validateCpf(_cpfController.text);
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                const TextComponent(
+                  text: 'Senha',
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  aligment: TextAlign.left,
+                ),
+                const SizedBox(height: 12),
+                InputComponent(
+                  emoji: Icons.lock,
+                  borderRadius: 20,
+                  width: 270,
+                  height: 65,
+                  hint: '6 digitos', // O hint diz 6, mas a tua validação pede 8, confere isso depois ;)
+                  hintColor: Colors.black.withValues(alpha: 0.5),
+                  ephemeral: true,
+                  controll: _senhaController,
+                  errorText: _senhaError,
+                  eventChange: (_) {
+                    if (_senhaError != null) {
+                      setState(() {
+                        _senhaError = LoginValidators.validatePassword(
+                          _senhaController.text,
+                          minLength: 6, // Ajustei aqui para 6 igual ao hint
+                        );
+                      });
+                    }
+                  },
+                ),
+                // Reduzi de 120 para 60 para libertar espaço para o botão extra
+                const SizedBox(height: 60),
+                Center(
+                  child: ButtonComponent(
+                    label: 'Entrar',
+                    borderRadius: 10,
+                    width: 150,
+                    height: 50,
+                    //isDisabled: _isLoading,
+                    onPressed: _validarEEntrar,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
                     onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const NewPassOperadorScreen())),
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NewPassOperadorScreen(),
+                      ),
+                    ),
                     child: const Text(
                       'Esqueci minha senha',
                       style: TextStyle(
@@ -223,8 +230,12 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
-                    ))),
-          ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

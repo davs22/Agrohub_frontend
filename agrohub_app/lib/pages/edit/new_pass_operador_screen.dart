@@ -154,159 +154,163 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
           ),
         ],
       ),
-     endDrawer: const DrawerMenuComponent(
+      endDrawer: const DrawerMenuComponent(
         headerTitle: 'Operador',
         visibleOptions: {
           DrawerMenuOption.configuracoes,
           DrawerMenuOption.logout,
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const TextComponent(
-                    text: 'Redefinir senha de operador',
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      TextComponent(
+                        text: 'Redefinir senha de operador',
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 50),
-              const Padding(
-                padding: EdgeInsets.only(left: 60),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextComponent(
-                    text: 'Digite seu usuario',
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              InputComponent(
-                emoji: Icons.badge,
-                borderRadius: 20,
-                width: 270,
-                height: 65,
-                hint: 'CPF',
-                controll: _cpfController,
-                typeInput: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  CpfInputFormatter(),
-                ],
-                errorText: _cpfError,
-                eventChange: (_) {
-                  setState(() {
-                    _cpfError = LoginValidators.validateCpf(_cpfController.text);
-                  });
-                },
-              ),
-              const SizedBox(height: 35),
-              const Padding(
-                padding: EdgeInsets.only(left: 60),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextComponent(
-                    text: 'Digite sua nova senha',
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              InputComponent(
-                emoji: Icons.lock,
-                borderRadius: 20,
-                width: 270,
-                height: 65,
-                hint: '8 digitos',
-                ephemeral: true,
-                controll: _senhaController,
-                errorText: _senhaError,
-                eventChange: (_) {
-                  setState(() {
-                    _senhaError = LoginValidators.validatePassword(
-                      _senhaController.text,
-                      minLength: 8,
-                    );
-                  });
-                },
-              ),
-              const SizedBox(height: 35),
-              const Padding(
-                padding: EdgeInsets.only(left: 60),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextComponent(
-                    text: 'Codigo de verificacao',
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              InputComponent(
-                emoji: Icons.verified_user,
-                borderRadius: 20,
-                width: 270,
-                height: 65,
-                hint: '6 digitos',
-                controll: _codigoController,
-                typeInput: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(6),
-                ],
-                errorText: _codigoError,
-                eventChange: (_) {
-                  setState(() {
-                    _codigoError = LoginValidators.validateVerificationCode(
-                      _codigoController.text,
-                      length: 6,
-                    );
-                  });
-                },
-              ),
-              const SizedBox(height: 15),
-              Padding(
-                padding: const EdgeInsets.only(left: 60),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: _segundosRestantes > 0 ? null : _enviarCodigo,
-                    child: Text(
-                      _segundosRestantes > 0
-                          ? 'Aguarde ${_segundosRestantes}s'
-                          : 'Enviar codigo',
-                      style: const TextStyle(
+                  const SizedBox(height: 50),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 60),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextComponent(
+                        text: 'Digite seu usuario',
                         color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  InputComponent(
+                    emoji: Icons.badge,
+                    borderRadius: 20,
+                    width: 270,
+                    height: 65,
+                    hint: 'CPF',
+                    controll: _cpfController,
+                    typeInput: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      CpfInputFormatter(),
+                    ],
+                    errorText: _cpfError,
+                    eventChange: (_) {
+                      setState(() {
+                        _cpfError = LoginValidators.validateCpf(_cpfController.text);
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 35),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 60),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextComponent(
+                        text: 'Digite sua nova senha',
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InputComponent(
+                    emoji: Icons.lock,
+                    borderRadius: 20,
+                    width: 270,
+                    height: 65,
+                    hint: '8 digitos',
+                    ephemeral: true,
+                    controll: _senhaController,
+                    errorText: _senhaError,
+                    eventChange: (_) {
+                      setState(() {
+                        _senhaError = LoginValidators.validatePassword(
+                          _senhaController.text,
+                          minLength: 8,
+                        );
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 35),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 60),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextComponent(
+                        text: 'Codigo de verificacao',
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InputComponent(
+                    emoji: Icons.verified_user,
+                    borderRadius: 20,
+                    width: 270,
+                    height: 65,
+                    hint: '6 digitos',
+                    controll: _codigoController,
+                    typeInput: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6),
+                    ],
+                    errorText: _codigoError,
+                    eventChange: (_) {
+                      setState(() {
+                        _codigoError = LoginValidators.validateVerificationCode(
+                          _codigoController.text,
+                          length: 6,
+                        );
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 60),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: _segundosRestantes > 0 ? null : _enviarCodigo,
+                        child: Text(
+                          _segundosRestantes > 0
+                              ? 'Aguarde ${_segundosRestantes}s'
+                              : 'Enviar codigo',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  ButtonComponent(
+                    label: 'Redefinir senha',
+                    borderRadius: 10,
+                    isDisabled: !_podeRedefinirSenha,
+                    onPressed: _validarERedefinirSenha,
+                  ),
+                ],
               ),
-              const SizedBox(height: 50),
-              ButtonComponent(
-                label: 'Redefinir senha',
-                borderRadius: 10,
-                isDisabled: !_podeRedefinirSenha,
-                onPressed: _validarERedefinirSenha,
-              ),
-            ],
+            ),
           ),
         ),
       ),

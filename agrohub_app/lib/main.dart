@@ -16,8 +16,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: LoginComercioScreen(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false, 
+      title: 'AgroHub',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+      ),
+      home: const LoginComercioScreen(), 
     );
   }
 }
