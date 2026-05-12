@@ -1,9 +1,9 @@
+import 'package:agrohub_app/constants.dart';
 import 'package:agrohub_app/pages/edit/edit_operador_screen.dart';
 import 'package:agrohub_app/pages/registro/register_operador_screen.dart';
 import 'package:agrohub_app/pages/view/view_operador_screen.dart';
 import 'package:flutter/material.dart';
 
-import 'package:agrohub_app/components/component_colors.dart';
 import 'package:agrohub_app/components/button.dart'; // <- Import do teu botão adicionado
 import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/login/login_adm_screen.dart';

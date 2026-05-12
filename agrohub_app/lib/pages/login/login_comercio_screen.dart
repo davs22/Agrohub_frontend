@@ -24,7 +24,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
 
   String? _documentoError;
   String? _senhaError;
-  //bool _isLoading = false;
+  bool _isLoading = false; // Reativado para controle de estado da requisição
 
   @override
   void dispose() {
@@ -34,7 +34,6 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
   }
 
   Future<void> _validarEEntrar() async {
-    // 1. Mantemos a validação local (para o protótipo parecer real se digitarem errado)
     final documentoError = LoginValidators.validateCpfOrCnpj(
       _documentoController.text,
     );
@@ -52,19 +51,27 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
       return;
     }
 
-    /* ==========================================
-       INÍCIO DO CÓDIGO COMENTADO (API REAL)
-       (Descomenta isto quando o backend estiver pronto)
-    =============================================
-    
+    // Inicia o estado de carregamento antes da requisição
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Remove pontos e traços do CPF/CNPJ caso a API exija apenas números
+    final loginLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
     final result = await loginRequest(
-      _documentoController.text,
+      loginLimpo, // Passando o documento limpo
       _senhaController.text,
     );
 
     if (!mounted) {
       return;
     }
+
+    // Finaliza o estado de carregamento após a resposta do servidor
+    setState(() {
+      _isLoading = false;
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(result.message)),
@@ -73,27 +80,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
     if (result.token == null) {
       return;
     }
-    
-    ============================================= */
 
-    // ==========================================
-    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
-    // ==========================================
-
-    // Mostra um aviso visual de sucesso
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Login simulado com sucesso! (Modo Protótipo)')),
-    );
-
-    // Espera 1 segundo para dar a sensação de que está a carregar algo
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) {
-      return;
-    }
-
-    // Navega diretamente para a próxima tela ignorando o token
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
@@ -124,7 +111,6 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
         },
       ),
       body: SafeArea(
-        // O SingleChildScrollView é o herói que vai resolver o erro do ecrã amarelo e preto!
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 30),
@@ -138,7 +124,6 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
                     height: 110,
                   ),
                 ),
-                // Reduzi um pouco este SizedBox (era 100) para ajudar no layout em ecrãs menores
                 const SizedBox(height: 60), 
                 const TextComponent(
                   text: 'Comercio',
@@ -199,16 +184,18 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
                     }
                   },
                 ),
-                // Reduzi este espaço também (era 120) para os botões ficarem mais visíveis
                 const SizedBox(height: 60), 
                 Center(
-                  child: ButtonComponent(
-                    label: 'Entrar',
-                    borderRadius: 10,
-                    width: 150,
-                    height: 50,
-                    onPressed: _validarEEntrar,
-                  ),
+                  // Exibe um loading ou o botão dependendo do estado
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.green)
+                      : ButtonComponent(
+                          label: 'Entrar',
+                          borderRadius: 10,
+                          width: 150,
+                          height: 50,
+                          onPressed: _validarEEntrar,
+                        ),
                 ),
                 const SizedBox(height: 20),
                 Center(

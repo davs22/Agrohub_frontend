@@ -1,6 +1,5 @@
+import 'package:agrohub_app/constants.dart';
 import 'package:flutter/material.dart';
-
-import 'package:agrohub_app/components/component_colors.dart';
 
 class TextComponent extends StatelessWidget {
   const TextComponent({

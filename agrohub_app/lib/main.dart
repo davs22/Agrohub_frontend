@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const LoginComercioScreen(), 
+      home: const LoginComercioScreen(),
     );
   }
 }
