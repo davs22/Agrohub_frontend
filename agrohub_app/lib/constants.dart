@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-String api = "http://10.143.0.133:8080";
+String api = "https://agrohub.discloud.app";
 
 const Color componentPrimaryColor = Color(0xFF24961F);
 const Color componentAccentColor = Color(0xFF135890);
@@ -17,3 +17,15 @@ const double componentTitleFontSize = 18;
 const double componentLabelFontSize = 18;
 const double componentFieldFontSize = 16;
 const double componentButtonFontSize = 18;
+
+class DefaultResult {
+  final int status;
+  final String message;
+  final dynamic data;
+
+  DefaultResult({
+    required this.status,
+    required this.message,
+    this.data,
+  });
+}
