@@ -3,39 +3,39 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart'; // Mantive caso uses depois
-import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
+import 'package:agrohub_app/modules/http_login.dart';
+import 'package:agrohub_app/pages/login/operador.dart';
+import 'package:agrohub_app/pages/registro/comercio.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class LoginOperadorScreen extends StatefulWidget {
-  const LoginOperadorScreen({super.key});
+class LoginComercioScreen extends StatefulWidget {
+  const LoginComercioScreen({super.key});
 
   @override
-  State<LoginOperadorScreen> createState() => _LoginOperadorScreenState();
+  State<LoginComercioScreen> createState() => _LoginComercioScreenState();
 }
 
-class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
-  final TextEditingController _cpfController = TextEditingController();
+class _LoginComercioScreenState extends State<LoginComercioScreen> {
+  final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  String? _cpfError;
+  String? _documentoError;
   String? _senhaError;
-  //bool _isLoading = false;
+  bool _isLoading = false; // Reativado para controle de estado da requisição
 
   @override
   void dispose() {
-    _cpfController.dispose();
+    _documentoController.dispose();
     _senhaController.dispose();
     super.dispose();
   }
 
   Future<void> _validarEEntrar() async {
-    // 1. Mantemos a validação local (para o protótipo parecer real se digitarem errado)
-    final cpfError = LoginValidators.validateCpf(
-      _cpfController.text,
+    final documentoError = LoginValidators.validateCpfOrCnpj(
+      _documentoController.text,
     );
     final senhaError = LoginValidators.validatePassword(
       _senhaController.text,
@@ -43,27 +43,35 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     );
 
     setState(() {
-      _cpfError = cpfError;
+      _documentoError = documentoError;
       _senhaError = senhaError;
     });
 
-    if (cpfError != null || senhaError != null) {
+    if (documentoError != null || senhaError != null) {
       return;
     }
 
-    /* ==========================================
-       INÍCIO DO CÓDIGO COMENTADO (API REAL)
-       (Descomenta isto quando o backend estiver pronto)
-    =============================================
-    
+    // Inicia o estado de carregamento antes da requisição
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Remove pontos e traços do CPF/CNPJ caso a API exija apenas números
+    final loginLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
     final result = await loginRequest(
-      _documentoController.text, // (Atenção: na API real, lembra-te de trocar isto para _cpfController.text)
+      loginLimpo, // Passando o documento limpo
       _senhaController.text,
     );
 
     if (!mounted) {
       return;
     }
+
+    // Finaliza o estado de carregamento após a resposta do servidor
+    setState(() {
+      _isLoading = false;
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(result.message)),
@@ -72,31 +80,10 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     if (result.token == null) {
       return;
     }
-    
-    ============================================= */
 
-    // ==========================================
-    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
-    // ==========================================
-
-    // Mostra um aviso visual de sucesso
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
-    );
-
-    // Espera 1 segundo para dar a sensação de que está a carregar algo
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) {
-      return;
-    }
-
-    // NAVEGAÇÃO: Notei que no teu código original ele estava a navegar para a própria LoginOperadorScreen.
-    // Presumo que depois do login ele deva ir para uma "Home do Operador" ou para a "Home Admin".
-    // Por agora, deixei a apontar para a HomeAdmScreen só para sair da tela de login, mas podes alterar depois!
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()), 
+      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
     );
   }
 
@@ -118,13 +105,11 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       endDrawer: const DrawerMenuComponent(
         headerTitle: 'Comercio',
         visibleOptions: {
-          DrawerMenuOption.novaSenhaOperador,
-          DrawerMenuOption.administrador,
           DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
+          DrawerMenuOption.registrarComercio,
+          DrawerMenuOption.registrarFazenda,
         },
       ),
-      // MUDANÇAS APLICADAS AQUI: SafeArea + SingleChildScrollView
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -134,15 +119,14 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
               children: [
                 Center(
                   child: SvgPicture.asset(
-                    'lib/interface_icons/operador.svg',
+                    'lib/interface_icons/fazenda.svg',
                     width: 110,
                     height: 110,
                   ),
                 ),
-                // Reduzi de 100 para 60 para libertar espaço
-                const SizedBox(height: 60),
+                const SizedBox(height: 60), 
                 const TextComponent(
-                  text: 'Operador',
+                  text: 'Comercio',
                   color: Colors.black,
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
@@ -154,21 +138,20 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                   borderRadius: 20,
                   width: 270,
                   height: 65,
-                  hint: 'CPF',
-                  controll: _cpfController,
+                  hint: 'CNPJ/CPF',
+                  controll: _documentoController,
                   typeInput: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
-                    CpfInputFormatter(),
+                    CpfOrCnpjInputFormatter(),
                   ],
-                  errorText: _cpfError,
+                  errorText: _documentoError,
                   eventChange: (_) {
-                    if (_cpfError != null) {
-                      setState(() {
-                        _cpfError =
-                            LoginValidators.validateCpf(_cpfController.text);
-                      });
-                    }
+                    setState(() {
+                      _documentoError = LoginValidators.validateCpfOrCnpj(
+                        _documentoController.text,
+                      );
+                    });
                   },
                 ),
                 const SizedBox(height: 12),
@@ -185,7 +168,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                   borderRadius: 20,
                   width: 270,
                   height: 65,
-                  hint: '6 digitos', // O hint diz 6, mas a tua validação pede 8, confere isso depois ;)
+                  hint: '8 digitos',
                   hintColor: Colors.black.withValues(alpha: 0.5),
                   ephemeral: true,
                   controll: _senhaController,
@@ -195,23 +178,24 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                       setState(() {
                         _senhaError = LoginValidators.validatePassword(
                           _senhaController.text,
-                          minLength: 6, // Ajustei aqui para 6 igual ao hint
+                          minLength: 8,
                         );
                       });
                     }
                   },
                 ),
-                // Reduzi de 120 para 60 para libertar espaço para o botão extra
-                const SizedBox(height: 60),
+                const SizedBox(height: 60), 
                 Center(
-                  child: ButtonComponent(
-                    label: 'Entrar',
-                    borderRadius: 10,
-                    width: 150,
-                    height: 50,
-                    //isDisabled: _isLoading,
-                    onPressed: _validarEEntrar,
-                  ),
+                  // Exibe um loading ou o botão dependendo do estado
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.green)
+                      : ButtonComponent(
+                          label: 'Entrar',
+                          borderRadius: 10,
+                          width: 150,
+                          height: 50,
+                          onPressed: _validarEEntrar,
+                        ),
                 ),
                 const SizedBox(height: 20),
                 Center(
@@ -219,11 +203,11 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const NewPassOperadorScreen(),
+                        builder: (context) => const RegisterComercioScreen(),
                       ),
                     ),
                     child: const Text(
-                      'Esqueci minha senha',
+                      'Registre-se',
                       style: TextStyle(
                         color: Color.fromARGB(255, 0, 0, 0),
                         fontSize: 16,
