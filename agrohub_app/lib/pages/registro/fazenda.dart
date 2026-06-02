@@ -375,7 +375,7 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
                     borderRadius: 4,
                     width: 400,
                   ),
-                  const SizedBox(height: 20), // Espaço extra no fundo
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
