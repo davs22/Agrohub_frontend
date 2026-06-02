@@ -1,18 +1,18 @@
 import 'package:agrohub_app/constants.dart';
-import 'package:agrohub_app/pages/edit/edit_operador_screen.dart';
-import 'package:agrohub_app/pages/registro/register_operador_screen.dart';
-import 'package:agrohub_app/pages/view/view_operador_screen.dart';
+import 'package:agrohub_app/pages/edit/operador.dart';
+import 'package:agrohub_app/pages/registro/operador.dart';
+import 'package:agrohub_app/pages/view/operador.dart';
 import 'package:flutter/material.dart';
 
 import 'package:agrohub_app/components/button.dart'; // <- Import do teu botão adicionado
 import 'package:agrohub_app/pages/home_adm_screen.dart';
-import 'package:agrohub_app/pages/login/login_adm_screen.dart';
-import 'package:agrohub_app/pages/login/login_comercio_screen.dart';
-import 'package:agrohub_app/pages/login/login_operador_screen.dart';
-import 'package:agrohub_app/pages/edit/new_pass_adm_screen.dart';
-import 'package:agrohub_app/pages/edit/new_pass_operador_screen.dart';
-import 'package:agrohub_app/pages/registro/register_comercio_screen.dart';
-import 'package:agrohub_app/pages/registro/register_fazenda_screen.dart';
+import 'package:agrohub_app/pages/login/adm.dart';
+import 'package:agrohub_app/pages/login/comercio.dart';
+import 'package:agrohub_app/pages/login/operador.dart';
+import 'package:agrohub_app/pages/edit/pass_adm.dart';
+import 'package:agrohub_app/pages/edit/pass_operador.dart';
+import 'package:agrohub_app/pages/registro/comercio.dart';
+import 'package:agrohub_app/pages/registro/fazenda.dart';
 
 enum DrawerMenuOption {
   operador,

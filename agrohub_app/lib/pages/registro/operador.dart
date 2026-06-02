@@ -4,53 +4,54 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
+import 'package:agrohub_app/modules/http_register.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class RegisterFazendaScreen extends StatefulWidget {
-  const RegisterFazendaScreen({super.key});
+class RegisterOperadorScreen extends StatefulWidget {
+  const RegisterOperadorScreen({super.key});
 
   @override
-  State<RegisterFazendaScreen> createState() => _RegisterFazendaScreenState();
+  State<RegisterOperadorScreen> createState() => _RegisterOperadorScreenState();
 }
 
-class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
+class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
   final TextEditingController _nomeController = TextEditingController();
+  final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _hectaresController = TextEditingController();
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _telefoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _senhaAdmController = TextEditingController();
   final TextEditingController _senhaOperadorController =
       TextEditingController();
 
+  bool _ativo = true;
+
   String? _nomeError;
   String? _documentoError;
-  String? _hectaresError;
-  String? _latitudeError;
-  String? _longitudeError;
+  String? _cpfError;
   String? _telefoneError;
   String? _emailError;
-  String? _senhaAdmError;
   String? _senhaOperadorError;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _nomeController.dispose();
+    _cpfController.dispose();
     _documentoController.dispose();
     _hectaresController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _telefoneController.dispose();
     _emailController.dispose();
-    _senhaAdmController.dispose();
     _senhaOperadorController.dispose();
     super.dispose();
   }
 
-  void _validarFormulario() {
+  Future<void> _validarFormulario() async {
     final nomeError = LoginValidators.validateRequiredText(
       _nomeController.text,
       fieldName: 'o nome do comercio',
@@ -59,50 +60,33 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
     final documentoError = LoginValidators.validateCpfOrCnpj(
       _documentoController.text,
     );
-    final hectaresError = LoginValidators.validatePositiveNumber(
-      _hectaresController.text,
-      fieldName: 'os hectares totais',
-    );
-    final latitudeError = LoginValidators.validateLatitude(
-      _latitudeController.text,
-    );
-    final longitudeError = LoginValidators.validateLongitude(
-      _longitudeController.text,
-    );
     final telefoneError = LoginValidators.validatePhone(
       _telefoneController.text,
     );
     final emailError = LoginValidators.validateEmail(_emailController.text);
-    final senhaAdmError = LoginValidators.validatePassword(
-      _senhaAdmController.text,
-      minLength: 8,
-    );
     final senhaOperadorError = LoginValidators.validatePassword(
       _senhaOperadorController.text,
       minLength: 8,
+    );
+    final cpfError = LoginValidators.validateCpf(
+      _cpfController.text,
     );
 
     setState(() {
       _nomeError = nomeError;
       _documentoError = documentoError;
-      _hectaresError = hectaresError;
-      _latitudeError = latitudeError;
-      _longitudeError = longitudeError;
+      _cpfError = cpfError;
       _telefoneError = telefoneError;
       _emailError = emailError;
-      _senhaAdmError = senhaAdmError;
       _senhaOperadorError = senhaOperadorError;
     });
 
     final hasError = [
       nomeError,
       documentoError,
-      hectaresError,
-      latitudeError,
-      longitudeError,
+      _cpfError,
       telefoneError,
       emailError,
-      senhaAdmError,
       senhaOperadorError,
     ].any((error) => error != null);
 
@@ -110,11 +94,40 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    final cpfLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final adminLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final telefoneLimpo = _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    final Map<String, dynamic> userData = {
+      "nome": _nomeController.text,
+      "cpf": cpfLimpo,
+      "documentoAdmin": adminLimpo,
+      "telefone": telefoneLimpo,
+      "email": _emailController.text,
+      "senha": _senhaOperadorController.text,
+      "ativo": _ativo,
+      "tipo": "operador",
+    };
+
+    final result = await registerRequest(userData);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cadastro validado com sucesso.')),
+      SnackBar(content: Text(result.message)),
     );
 
-    Navigator.pop(context);
+    if (result.status >= 200 && result.status < 300) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -133,10 +146,14 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
         ],
       ),
       endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Comercio',
+        headerTitle: 'Administrador',
         visibleOptions: {
-          DrawerMenuOption.registrarComercio,
+          DrawerMenuOption.homeAdmin,
+          DrawerMenuOption.listaOperadores,
+          DrawerMenuOption.registrarOperador,
+          DrawerMenuOption.editarOperador,
           DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
         },
       ),
       body: SafeArea(
@@ -152,7 +169,7 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       TextComponent(
-                        text: 'Registro de Fazenda',
+                        text: 'Registro de Operador',
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
                       ),
@@ -160,32 +177,11 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
                   ),
                   const SizedBox(height: 24),
                   InputComponent(
-                    emoji: Icons.store,
+                    emoji: Icons.admin_panel_settings,
                     borderRadius: 4,
                     width: 400,
                     height: 45,
-                    hint: 'Nome do Comercio',
-                    controll: _nomeController,
-                    typeInput: TextInputType.name,
-                    inputFormatters: const [],
-                    errorText: _nomeError,
-                    eventChange: (_) {
-                      setState(() {
-                        _nomeError = LoginValidators.validateRequiredText(
-                          _nomeController.text,
-                          fieldName: 'o nome do comercio',
-                          minLength: 3,
-                        );
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  InputComponent(
-                    emoji: Icons.badge,
-                    borderRadius: 4,
-                    width: 400,
-                    height: 45,
-                    hint: 'CNPJ/CPF',
+                    hint: 'CNPJ/CPF de administrador',
                     controll: _documentoController,
                     typeInput: TextInputType.number,
                     inputFormatters: [
@@ -203,78 +199,43 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
                   ),
                   const SizedBox(height: 20),
                   InputComponent(
-                    emoji: Icons.agriculture,
+                    emoji: Icons.manage_accounts,
                     borderRadius: 4,
                     width: 400,
                     height: 45,
-                    hint: 'Hectares totais',
-                    controll: _hectaresController,
-                    typeInput:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*([,.]\d*)?$')),
-                    ],
-                    errorText: _hectaresError,
+                    hint: 'Nome completo',
+                    controll: _nomeController,
+                    typeInput: TextInputType.name,
+                    inputFormatters: const [],
+                    errorText: _nomeError,
                     eventChange: (_) {
                       setState(() {
-                        _hectaresError =
-                            LoginValidators.validatePositiveNumber(
-                          _hectaresController.text,
-                          fieldName: 'os hectares totais',
+                        _nomeError = LoginValidators.validateRequiredText(
+                          _nomeController.text,
+                          fieldName: 'o nome do operador',
+                          minLength: 3,
                         );
                       });
                     },
                   ),
                   const SizedBox(height: 20),
                   InputComponent(
-                    emoji: Icons.location_on,
+                    emoji: Icons.badge,
                     borderRadius: 4,
                     width: 400,
                     height: 45,
-                    hint: 'Latitude',
-                    controll: _latitudeController,
-                    typeInput: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
+                    hint: 'CPF',
+                    controll: _cpfController,
+                    typeInput: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^-?\d*([,.]\d*)?$'),
-                      ),
+                      FilteringTextInputFormatter.digitsOnly,
+                      CpfInputFormatter(),
                     ],
-                    errorText: _latitudeError,
+                    errorText: _cpfError,
                     eventChange: (_) {
                       setState(() {
-                        _latitudeError = LoginValidators.validateLatitude(
-                          _latitudeController.text,
-                        );
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  InputComponent(
-                    emoji: Icons.explore,
-                    borderRadius: 4,
-                    width: 400,
-                    height: 45,
-                    hint: 'Longitude',
-                    controll: _longitudeController,
-                    typeInput: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^-?\d*([,.]\d*)?$'),
-                      ),
-                    ],
-                    errorText: _longitudeError,
-                    eventChange: (_) {
-                      setState(() {
-                        _longitudeError = LoginValidators.validateLongitude(
-                          _longitudeController.text,
-                        );
+                        _cpfError = LoginValidators.validateCpf(
+                            _cpfController.text);
                       });
                     },
                   ),
@@ -323,30 +284,11 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
                   ),
                   const SizedBox(height: 20),
                   InputComponent(
-                    emoji: Icons.admin_panel_settings,
+                    emoji: Icons.lock,
                     borderRadius: 4,
                     width: 400,
                     height: 45,
-                    hint: 'Senha de administracao',
-                    controll: _senhaAdmController,
-                    ephemeral: true,
-                    errorText: _senhaAdmError,
-                    eventChange: (_) {
-                      setState(() {
-                        _senhaAdmError = LoginValidators.validatePassword(
-                          _senhaAdmController.text,
-                          minLength: 8,
-                        );
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  InputComponent(
-                    emoji: Icons.manage_accounts,
-                    borderRadius: 4,
-                    width: 400,
-                    height: 45,
-                    hint: 'Senha de operador',
+                    hint: 'Senha',
                     controll: _senhaOperadorController,
                     ephemeral: true,
                     errorText: _senhaOperadorError,
@@ -360,21 +302,58 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
                       });
                     },
                   ),
-                  const SizedBox(height: 40),
-                  ButtonComponent(
-                    label: 'Registrar',
-                    height: 40,
-                    fontSize: 16,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 8,
-                    ),
-                    onPressed: _validarFormulario,
-                    borderColor: const Color.fromARGB(255, 76, 175, 80),
-                    backgroundColor: const Color.fromARGB(255, 76, 175, 80),
-                    borderRadius: 4,
+                  const SizedBox(height: 20),
+                  Container(
                     width: 400,
+                    height: 45,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.black),
+                        const SizedBox(width: 12),
+                        Text(
+                          _ativo ? 'Ativo' : 'Inativo',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const Spacer(),
+                        Switch(
+                          value: _ativo,
+                          onChanged: (value) {
+                            setState(() {
+                              _ativo = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 40),
+                  _isLoading
+                      ? const CircularProgressIndicator(color: Colors.green)
+                      : ButtonComponent(
+                          label: 'Registrar',
+                          height: 40,
+                          fontSize: 16,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 8,
+                          ),
+                          isDisabled: _isLoading,
+                          onPressed: _validarFormulario,
+                          borderColor: const Color.fromARGB(255, 76, 175, 80),
+                          backgroundColor: const Color.fromARGB(255, 76, 175, 80),
+                          borderRadius: 4,
+                          width: 400,
+                        ),
                   const SizedBox(height: 20),
                 ],
               ),

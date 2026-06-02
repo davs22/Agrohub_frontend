@@ -4,8 +4,8 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/modules/http_login.dart';
-import 'package:agrohub_app/pages/login/login_operador_screen.dart';
-import 'package:agrohub_app/pages/registro/register_comercio_screen.dart';
+import 'package:agrohub_app/pages/login/operador.dart';
+import 'package:agrohub_app/pages/registro/comercio.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,7 +24,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
 
   String? _documentoError;
   String? _senhaError;
-  bool _isLoading = false; // Reativado para controle de estado da requisição
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -51,24 +51,19 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
       return;
     }
 
-    // Inicia o estado de carregamento antes da requisição
     setState(() {
       _isLoading = true;
     });
 
-    // Remove pontos e traços do CPF/CNPJ caso a API exija apenas números
     final loginLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
     final result = await loginRequest(
-      loginLimpo, // Passando o documento limpo
+      loginLimpo,
       _senhaController.text,
     );
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
-    // Finaliza o estado de carregamento após a resposta do servidor
     setState(() {
       _isLoading = false;
     });
@@ -186,7 +181,6 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
                 ),
                 const SizedBox(height: 60), 
                 Center(
-                  // Exibe um loading ou o botão dependendo do estado
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.green)
                       : ButtonComponent(
@@ -194,6 +188,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
                           borderRadius: 10,
                           width: 150,
                           height: 50,
+                          isDisabled: _isLoading,
                           onPressed: _validarEEntrar,
                         ),
                 ),
