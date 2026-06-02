@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
+import 'package:agrohub_app/modules/http_register.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -33,6 +34,7 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
   String? _emailError;
   String? _senhaAdmError;
   String? _senhaOperadorError;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -47,7 +49,7 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
     super.dispose();
   }
 
-  void _validarFormulario() {
+  Future<void> _validarFormulario() async {
     final nomeError = LoginValidators.validateRequiredText(
       _nomeController.text,
       fieldName: 'o nome do comercio',
@@ -97,11 +99,41 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    final documentoLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final cepLimpo = _cepController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final telefoneLimpo = _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    final Map<String, dynamic> userData = {
+      "nome": _nomeController.text,
+      "documento": documentoLimpo,
+      "rua": _ruaController.text,
+      "cep": cepLimpo,
+      "telefone": telefoneLimpo,
+      "email": _emailController.text,
+      "senhaAdm": _senhaAdmController.text,
+      "senhaOperador": _senhaOperadorController.text,
+      "tipo": "comercio",
+    };
+
+    final result = await registerRequest(userData);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cadastro validado com sucesso.')),
+      SnackBar(content: Text(result.message)),
     );
 
-    Navigator.pop(context);
+    if (result.status >= 200 && result.status < 300) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -312,20 +344,23 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
                     },
                   ),
                   const SizedBox(height: 40),
-                  ButtonComponent(
-                    label: 'Registrar',
-                    height: 40,
-                    fontSize: 16,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 8,
-                    ),
-                    onPressed: _validarFormulario,
-                    borderColor: const Color.fromARGB(255, 76, 175, 80),
-                    backgroundColor: const Color.fromARGB(255, 76, 175, 80),
-                    borderRadius: 4,
-                    width: 400,
-                  ),
+                  _isLoading
+                      ? const CircularProgressIndicator(color: Colors.green)
+                      : ButtonComponent(
+                          label: 'Registrar',
+                          height: 40,
+                          fontSize: 16,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 8,
+                          ),
+                          isDisabled: _isLoading,
+                          onPressed: _validarFormulario,
+                          borderColor: const Color.fromARGB(255, 76, 175, 80),
+                          backgroundColor: const Color.fromARGB(255, 76, 175, 80),
+                          borderRadius: 4,
+                          width: 400,
+                        ),
                   const SizedBox(height: 20),
                 ],
               ),

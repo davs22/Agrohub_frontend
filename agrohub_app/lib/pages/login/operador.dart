@@ -5,6 +5,7 @@ import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart'; // Mantive caso uses depois
 import 'package:agrohub_app/pages/edit/pass_operador.dart';
+import 'package:agrohub_app/modules/http_login.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +24,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   String? _cpfError;
   String? _senhaError;
-  //bool _isLoading = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -51,43 +52,28 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       return;
     }
 
-    /* ==========================================
-       INÍCIO DO CÓDIGO COMENTADO (API REAL)
-       (Descomenta isto quando o backend estiver pronto)
-    =============================================
-    
+    setState(() {
+      _isLoading = true;
+    });
+
+    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
     final result = await loginRequest(
-      _documentoController.text, // (Atenção: na API real, lembra-te de trocar isto para _cpfController.text)
+      loginLimpo,
       _senhaController.text,
     );
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(result.message)),
     );
 
     if (result.token == null) {
-      return;
-    }
-    
-    ============================================= */
-
-    // ==========================================
-    // INÍCIO DA SIMULAÇÃO (PROTÓTIPO)
-    // ==========================================
-
-    // Mostra um aviso visual de sucesso
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login simulado com sucesso! (Modo Protótipo)')),
-    );
-
-    // Espera 1 segundo para dar a sensação de que está a carregar algo
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) {
       return;
     }
 
@@ -204,14 +190,16 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
                 // Reduzi de 120 para 60 para libertar espaço para o botão extra
                 const SizedBox(height: 60),
                 Center(
-                  child: ButtonComponent(
-                    label: 'Entrar',
-                    borderRadius: 10,
-                    width: 150,
-                    height: 50,
-                    //isDisabled: _isLoading,
-                    onPressed: _validarEEntrar,
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.green)
+                      : ButtonComponent(
+                          label: 'Entrar',
+                          borderRadius: 10,
+                          width: 150,
+                          height: 50,
+                          isDisabled: _isLoading,
+                          onPressed: _validarEEntrar,
+                        ),
                 ),
                 const SizedBox(height: 20),
                 Center(
