@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:agrohub_app/constants.dart';
 import 'package:http/http.dart' as http;
 
-// Registro de Usuário
-Future<DefaultResult> registerRequest(Map<String, dynamic> userData) async {
+Future<DefaultResult> registerRequest(Map<String, dynamic> userData, String token) async {
   try {
     final url = Uri.parse('$api/user/register');
 
@@ -11,6 +10,7 @@ Future<DefaultResult> registerRequest(Map<String, dynamic> userData) async {
       url,
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode(userData),
     );
@@ -35,7 +35,6 @@ Future<DefaultResult> registerRequest(Map<String, dynamic> userData) async {
   }
 }
 
-// Registro de talhões
 Future<DefaultResult> talhoesRegister(Map<String, dynamic> talhaoData, String token) async {
   try {
     final url = Uri.parse('$api/talhao/register');
@@ -69,7 +68,6 @@ Future<DefaultResult> talhoesRegister(Map<String, dynamic> talhaoData, String to
   }
 }
 
-// Registro de lotes
 Future<DefaultResult> lotesRegister(Map<String, dynamic> loteData, String token) async {
   try {
     final url = Uri.parse('$api/lotes/create');
@@ -102,4 +100,3 @@ Future<DefaultResult> lotesRegister(Map<String, dynamic> loteData, String token)
     );
   }
 }
-
