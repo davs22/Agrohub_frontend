@@ -256,20 +256,20 @@ class DrawerMenuComponent extends StatelessWidget {
             _navigateTo(context, const RegisterOperadorScreen());
           },
         );
-      case DrawerMenuOption.editarOperador:
+      /*case DrawerMenuOption.editarOperador:
         return DrawerItem(
           title: 'Editar operador',
           icon: Icons.edit,
           onTap: () {
             _navigateTo(context, const EditOperadorScreen());
           },
-        );
+        );*/
       case DrawerMenuOption.configuracoes:
         return DrawerItem(
           title: 'Configurações',
           icon: Icons.settings,
           onTap: () {
-            Navigator.pop(context); // Aqui apenas fechamos o menu
+            Navigator.pop(context);
             debugPrint('Navegar para Configurações');
           },
         );
@@ -278,7 +278,6 @@ class DrawerMenuComponent extends StatelessWidget {
           title: 'Sair',
           icon: Icons.logout,
           onTap: () {
-            // Mantivemos esta opção configurada de forma segura caso precises de usar em outro contexto
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
@@ -286,6 +285,9 @@ class DrawerMenuComponent extends StatelessWidget {
             );
           },
         );
+      case DrawerMenuOption.editarOperador:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

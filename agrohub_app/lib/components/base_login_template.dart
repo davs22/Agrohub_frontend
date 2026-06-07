@@ -47,52 +47,63 @@ class BaseLoginTemplate extends StatelessWidget {
         visibleOptions: visibleOptions,
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: SvgPicture.asset(
-                      svgPath,
-                      width: 110,
-                      height: 110,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                  minWidth: constraints.maxWidth,
+                ),
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: SvgPicture.asset(
+                            svgPath,
+                            width: 110,
+                            height: 110,
+                          ),
+                        ),
+                        const SizedBox(height: 60),
+                        TextComponent(
+                          text: title,
+                          color: Colors.black,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          aligment: TextAlign.left,
+                        ),
+                        const SizedBox(height: 12),
+                        ...fields,
+                        const SizedBox(height: 60),
+                        Center(
+                          child: isLoading
+                              ? const CircularProgressIndicator(color: Colors.green)
+                              : ButtonComponent(
+                                  label: 'Entrar',
+                                  borderRadius: 10,
+                                  width: 150,
+                                  height: 50,
+                                  isDisabled: isLoading,
+                                  onPressed: onSubmit,
+                                ),
+                        ),
+                        if (footerWidget != null) ...[
+                          const SizedBox(height: 20),
+                          Center(child: footerWidget!),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 60),
-                  TextComponent(
-                    text: title,
-                    color: Colors.black,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    aligment: TextAlign.left,
-                  ),
-                  const SizedBox(height: 12),
-                  ...fields,
-                  const SizedBox(height: 60),
-                  Center(
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.green)
-                        : ButtonComponent(
-                            label: 'Entrar',
-                            borderRadius: 10,
-                            width: 150,
-                            height: 50,
-                            isDisabled: isLoading,
-                            onPressed: onSubmit,
-                          ),
-                  ),
-                  if (footerWidget != null) ...[
-                    const SizedBox(height: 20),
-                    Center(child: footerWidget!),
-                  ],
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

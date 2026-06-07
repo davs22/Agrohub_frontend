@@ -6,6 +6,7 @@ import 'package:agrohub_app/pages/edit/pass_operador.dart';
 import 'package:agrohub_app/modules/http_login.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:agrohub_app/components/base_login_template.dart';
+import 'package:agrohub_app/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,10 +35,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   Future<void> _validarEEntrar() async {
     final cpfError = LoginValidators.validateCpf(_cpfController.text);
-    final senhaError = LoginValidators.validatePassword(
-      _senhaController.text,
-      minLength: 6,
-    );
+    final senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 6);
 
     setState(() {
       _cpfError = cpfError;
@@ -49,25 +47,46 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     setState(() { _isLoading = true; });
 
     final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final result = await loginRequest(loginLimpo, _senhaController.text);
+    final prefs = await SharedPreferences.getInstance();
+    
+    try {
+      final result = await loginRequest(loginLimpo, _senhaController.text);
+      
+      if (result.token != null) {
+        await prefs.setString('token', result.token!);
+        await prefs.setString('role', 'OPERADOR');
+        
+        if (!mounted) return;
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeAdmScreen()));
+        return;
+      }
+    } catch (e) {
+      debugPrint('Falha na API, tentando modo offline...');
+    }
+
+    final db = await DatabaseHelper.instance.database;
+    final userLocal = await db.query(
+      'operadores', 
+      where: 'cpf = ? AND senha = ?', 
+      whereArgs: [loginLimpo, _senhaController.text]
+    );
 
     if (!mounted) return;
-
     setState(() { _isLoading = false; });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result.message)),
-    );
-
-    if (result.token == null) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', result.token!);
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
-    );
+    if (userLocal.isNotEmpty) {
+      await prefs.setString('token', 'OFFLINE_MODE');
+      await prefs.setString('role', 'OPERADOR');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sem internet: Autenticado no Modo Offline')),
+      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeAdmScreen()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Falha na conexão e usuário não encontrado offline.')),
+      );
+    }
   }
 
   @override
@@ -91,11 +110,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
         ),
         child: const Text(
           'Esqueci minha senha',
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
       fields: [
@@ -142,10 +157,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
           eventChange: (_) {
             if (_senhaError != null) {
               setState(() {
-                _senhaError = LoginValidators.validatePassword(
-                  _senhaController.text,
-                  minLength: 6,
-                );
+                _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 6);
               });
             }
           },
