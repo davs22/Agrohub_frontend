@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:agrohub_app/modules/http_register.dart';
 import 'package:agrohub_app/components/base_register_template.dart';
+import 'package:agrohub_app/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,7 +62,7 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
     });
 
     final hasError = [
-      nomeError, documentoError, _cpfError,
+      nomeError, documentoError, cpfError,
       telefoneError, emailError, senhaOperadorError,
     ].any((error) => error != null);
 
@@ -77,11 +78,22 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token') ?? '';
 
+    final Map<String, dynamic> dadosLocais = {
+      "nome_completo": _nomeController.text,
+      "cpf": cpfLimpo,
+      "email": _emailController.text,
+      "telefone": telefoneLimpo,
+      "senha": _senhaOperadorController.text,
+      "status_sincronizacao": 0,
+    };
+
+    final idSalvo = await DatabaseHelper.instance.inserirRegistro('operadores', dadosLocais);
+
     final Map<String, dynamic> userData = {
       "nome": _nomeController.text,
       "email": _emailController.text,
       "telefone": telefoneLimpo,
-      "endereco": "", 
+      "endereco": "0", 
       "login": cpfLimpo, 
       "senha": _senhaOperadorController.text,
       "role": "OPERADOR", 
@@ -96,11 +108,17 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
       _isLoading = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result.message)),
-    );
-
     if (result.status >= 200 && result.status < 300) {
+      await DatabaseHelper.instance.marcarComoSincronizado('operadores', idSalvo);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Operador registrado e sincronizado com a nuvem!')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Modo Offline: Salvo localmente. Erro na nuvem: ${result.message}')),
+      );
       Navigator.pop(context);
     }
   }

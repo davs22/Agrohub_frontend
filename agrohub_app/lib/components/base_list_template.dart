@@ -4,7 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:flutter/material.dart';
 
-class BaseRegisterTemplate extends StatelessWidget {
+class BaseListTemplate extends StatelessWidget {
   final String title;
   final String headerDrawerTitle;
   final Set<DrawerMenuOption> visibleOptions;
@@ -12,7 +12,7 @@ class BaseRegisterTemplate extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onSubmit;
 
-  const BaseRegisterTemplate({
+  const BaseListTemplate({
     super.key,
     required this.title,
     required this.headerDrawerTitle,
@@ -74,7 +74,7 @@ class BaseRegisterTemplate extends StatelessWidget {
                         isLoading
                             ? const CircularProgressIndicator(color: Colors.green)
                             : ButtonComponent(
-                                label: 'Registrar',
+                                label: 'Atualizar',
                                 height: 40,
                                 fontSize: 16,
                                 padding: const EdgeInsets.symmetric(

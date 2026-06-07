@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:agrohub_app/modules/http_register.dart';
 import 'package:agrohub_app/components/base_register_template.dart'; 
+import 'package:agrohub_app/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,11 +87,25 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token') ?? '';
 
+    final Map<String, dynamic> dadosLocais = {
+      "nome": _nomeController.text,
+      "documento": documentoLimpo,
+      "cep": cepLimpo,
+      "rua": _ruaController.text,
+      "telefone": telefoneLimpo,
+      "email": _emailController.text,
+      "senha_adm": _senhaAdmController.text,
+      "senha_operacao": _senhaOperadorController.text,
+      "status_sincronizacao": 0,
+    };
+
+    final idSalvo = await DatabaseHelper.instance.inserirRegistro('comercios', dadosLocais);
+
     final Map<String, dynamic> userData = {
       "nome": _nomeController.text,
       "email": _emailController.text,
       "telefone": telefoneLimpo,
-      "endereco": "${_ruaController.text}, CEP: $cepLimpo", 
+      "endereco": cepLimpo, 
       "login": documentoLimpo, 
       "senha": _senhaAdmController.text, 
       "role": "COMERCIO", 
@@ -108,11 +123,17 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
       _isLoading = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result.message)),
-    );
-
     if (result.status >= 200 && result.status < 300) {
+      await DatabaseHelper.instance.marcarComoSincronizado('comercios', idSalvo);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comércio registrado e sincronizado com a nuvem!')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Modo Offline: Salvo localmente. Erro na nuvem: ${result.message}')),
+      );
       Navigator.pop(context);
     }
   }
