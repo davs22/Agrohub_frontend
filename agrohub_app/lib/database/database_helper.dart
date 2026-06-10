@@ -17,7 +17,12 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {
@@ -67,6 +72,8 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE talhoes (
         id_local INTEGER PRIMARY KEY AUTOINCREMENT,
+        talhao_id_nuvem TEXT,
+        usuario_id TEXT,
         nome TEXT NOT NULL,
         tamanho_hectares REAL NOT NULL,
         cultura_atual TEXT,
@@ -78,18 +85,58 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE lotes (
         id_local INTEGER PRIMARY KEY AUTOINCREMENT,
+        lote_id_nuvem TEXT,
+        instancia_id TEXT,
+        usuario_id TEXT,
+        talhao_id TEXT,
+        operador_id TEXT,
+        codigo_rastreio TEXT,
         produto TEXT NOT NULL,
         quantidade INTEGER NOT NULL,
         unidade_medida TEXT NOT NULL,
+        status TEXT,
+        imagem_url TEXT,
+        is_published INTEGER NOT NULL DEFAULT 0,
         data_registro TEXT NOT NULL,
         status_sincronizacao INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }
 
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _addColumnIfMissing(db, 'talhoes', 'talhao_id_nuvem', 'TEXT');
+      await _addColumnIfMissing(db, 'talhoes', 'usuario_id', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'lote_id_nuvem', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'instancia_id', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'usuario_id', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'talhao_id', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'operador_id', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'codigo_rastreio', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'status', 'TEXT');
+      await _addColumnIfMissing(db, 'lotes', 'imagem_url', 'TEXT');
+      await _addColumnIfMissing(
+          db, 'lotes', 'is_published', 'INTEGER NOT NULL DEFAULT 0');
+    }
+  }
+
+  Future<void> _addColumnIfMissing(
+    Database db,
+    String table,
+    String column,
+    String definition,
+  ) async {
+    final columns = await db.rawQuery('PRAGMA table_info($table)');
+    final exists = columns.any((item) => item['name'] == column);
+    if (!exists) {
+      await db.execute('ALTER TABLE $table ADD COLUMN $column $definition');
+    }
+  }
+
   Future<int> inserirRegistro(String tabela, Map<String, dynamic> dados) async {
     final db = await instance.database;
-    return await db.insert(tabela, dados, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(tabela, dados,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<Map<String, dynamic>>> listarTodos(String tabela) async {
@@ -110,10 +157,11 @@ class DatabaseHelper {
     return null;
   }
 
-  Future<int> atualizarRegistro(String tabela, Map<String, dynamic> dados, int idLocal) async {
+  Future<int> atualizarRegistro(
+      String tabela, Map<String, dynamic> dados, int idLocal) async {
     final db = await instance.database;
     dados['status_sincronizacao'] = 0;
-    
+
     return await db.update(
       tabela,
       dados,
@@ -131,7 +179,8 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> buscarNaoSincronizados(String tabela) async {
+  Future<List<Map<String, dynamic>>> buscarNaoSincronizados(
+      String tabela) async {
     final db = await instance.database;
     return await db.query(
       tabela,

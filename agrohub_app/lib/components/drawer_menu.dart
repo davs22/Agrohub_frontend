@@ -1,6 +1,9 @@
 import 'package:agrohub_app/constants.dart';
-import 'package:agrohub_app/pages/edit/operador.dart';
+import 'package:agrohub_app/pages/edit/lote.dart';
+import 'package:agrohub_app/pages/edit/talhao.dart';
+import 'package:agrohub_app/pages/registro/lote.dart';
 import 'package:agrohub_app/pages/registro/operador.dart';
+import 'package:agrohub_app/pages/registro/talhao.dart';
 import 'package:agrohub_app/pages/view/operador.dart';
 import 'package:flutter/material.dart';
 
@@ -25,6 +28,10 @@ enum DrawerMenuOption {
   registrarComercio,
   registrarOperador,
   editarOperador,
+  registrarTalhao,
+  editarTalhao,
+  registrarLote,
+  editarLote,
   configuracoes,
   logout,
 }
@@ -256,14 +263,46 @@ class DrawerMenuComponent extends StatelessWidget {
             _navigateTo(context, const RegisterOperadorScreen());
           },
         );
-      /*case DrawerMenuOption.editarOperador:
+      case DrawerMenuOption.editarOperador:
         return DrawerItem(
           title: 'Editar operador',
           icon: Icons.edit,
           onTap: () {
-            _navigateTo(context, const EditOperadorScreen());
+            _navigateTo(context, const ViewOperadorScreen());
           },
-        );*/
+        );
+      case DrawerMenuOption.registrarTalhao:
+        return DrawerItem(
+          title: 'Registrar talhão',
+          icon: Icons.grass,
+          onTap: () {
+            _navigateTo(context, const RegisterTalhaoScreen());
+          },
+        );
+      case DrawerMenuOption.editarTalhao:
+        return DrawerItem(
+          title: 'Editar talhão',
+          icon: Icons.edit_location_alt,
+          onTap: () {
+            _navigateTo(context, const EditTalhaoScreen());
+          },
+        );
+      case DrawerMenuOption.registrarLote:
+        return DrawerItem(
+          title: 'Registrar lote',
+          icon: Icons.inventory_2,
+          onTap: () {
+            _navigateTo(context, const RegisterLoteScreen());
+          },
+        );
+      case DrawerMenuOption.editarLote:
+        return DrawerItem(
+          title: 'Editar lote',
+          icon: Icons.edit_note,
+          onTap: () {
+            _navigateTo(context, const EditLoteScreen());
+          },
+        );
       case DrawerMenuOption.configuracoes:
         return DrawerItem(
           title: 'Configurações',
@@ -285,9 +324,6 @@ class DrawerMenuComponent extends StatelessWidget {
             );
           },
         );
-      case DrawerMenuOption.editarOperador:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
   }
 
