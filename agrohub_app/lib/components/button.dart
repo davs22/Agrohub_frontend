@@ -48,29 +48,38 @@ class ButtonComponent extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final VoidCallback? action = isDisabled ? null : onPressed;
     final Color resolvedTextColor = _determineTextColor();
+    final double resolvedFontSize = _resolveFontSize();
+    final EdgeInsets resolvedPadding = _resolvePadding();
 
-    final Widget buttonChild = Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (icon != null) ...[
-          Icon(
-            icon,
-            size: (fontSize ?? componentButtonFontSize) + 2,
-            color: resolvedTextColor,
+    final Widget buttonChild = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: resolvedFontSize + 2,
+              color: resolvedTextColor,
+            ),
+            SizedBox(width: iconSpacing),
+          ],
+          Text(
+            label,
+            textAlign: textAlign,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.visible,
+            style: TextStyle(
+              fontSize: resolvedFontSize,
+              color: resolvedTextColor,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          SizedBox(width: iconSpacing),
         ],
-        Text(
-          label,
-          textAlign: textAlign,
-          style: TextStyle(
-            fontSize: fontSize ?? componentButtonFontSize,
-            color: resolvedTextColor,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+      ),
     );
 
     final ButtonStyle commonStyle = ButtonStyle(
@@ -78,7 +87,7 @@ class ButtonComponent extends StatelessWidget {
         Size(width ?? 210, height ?? componentButtonHeight),
       ),
       padding: WidgetStatePropertyAll(
-        padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding ?? resolvedPadding,
       ),
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
@@ -145,5 +154,35 @@ class ButtonComponent extends StatelessWidget {
       return disabledTextColor ?? componentTextColor.withAlpha(153);
     }
     return textColor ?? componentTextColor;
+  }
+
+  double _resolveFontSize() {
+    if (fontSize != null) {
+      return fontSize!;
+    }
+
+    final resolvedHeight = height ?? componentButtonHeight;
+    if (resolvedHeight <= 40) {
+      return 14;
+    }
+    if (resolvedHeight <= 46) {
+      return 15;
+    }
+    return componentButtonFontSize;
+  }
+
+  EdgeInsets _resolvePadding() {
+    if (padding != null) {
+      return padding!;
+    }
+
+    final resolvedHeight = height ?? componentButtonHeight;
+    if (resolvedHeight <= 40) {
+      return const EdgeInsets.symmetric(horizontal: 14, vertical: 6);
+    }
+    if (resolvedHeight <= 46) {
+      return const EdgeInsets.symmetric(horizontal: 16, vertical: 7);
+    }
+    return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
   }
 }

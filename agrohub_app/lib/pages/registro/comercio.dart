@@ -104,7 +104,12 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
       'status': 'ATIVO',
     };
 
-    await DatabaseHelper.instance.inserirRegistro('comercios', dadosLocais);
+    await DatabaseHelper.instance.salvarOuAtualizarPorColunaUnica(
+      'comercios',
+      colunaUnica: 'documento',
+      valorUnico: documentoLimpo,
+      dados: dadosLocais,
+    );
 
     if (!mounted) return;
 

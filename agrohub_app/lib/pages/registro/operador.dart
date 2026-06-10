@@ -110,7 +110,12 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
       'status': _ativo ? 'ATIVO' : 'INATIVO',
     };
 
-    await DatabaseHelper.instance.inserirRegistro('operadores', dadosLocais);
+    await DatabaseHelper.instance.salvarOuAtualizarPorColunaUnica(
+      'operadores',
+      colunaUnica: 'cpf',
+      valorUnico: cpfLimpo,
+      dados: dadosLocais,
+    );
 
     if (!mounted) return;
 

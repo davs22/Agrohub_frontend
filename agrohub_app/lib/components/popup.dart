@@ -51,13 +51,21 @@ class PopupComponent {
           ),
           actions: <Widget>[
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: colorScheme.onSurface),
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.onSurface,
+                minimumSize: const Size(96, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 onClick?.call();
               },
               child: Text(
                 closeText ?? 'Fechar',
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.visible,
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),

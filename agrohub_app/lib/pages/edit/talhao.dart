@@ -151,12 +151,30 @@ class _EditTalhaoScreenState extends State<EditTalhaoScreen> {
           content: const Text('Esse talhao sera excluido permanentemente do banco local.'),
           actions: [
             TextButton(
+              style: TextButton.styleFrom(
+                minimumSize: const Size(96, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
+              child: const Text(
+                'Cancelar',
+                maxLines: 1,
+                softWrap: false,
+              ),
             ),
             TextButton(
+              style: TextButton.styleFrom(
+                minimumSize: const Size(96, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Excluir'),
+              child: const Text(
+                'Excluir',
+                maxLines: 1,
+                softWrap: false,
+              ),
             ),
           ],
         );

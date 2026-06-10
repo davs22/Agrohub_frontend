@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class BaseEditTemplate extends StatelessWidget {
@@ -43,20 +44,30 @@ class BaseEditTemplate extends StatelessWidget {
           headerTitle: headerDrawerTitle,
           visibleOptions: visibleOptions,
         ),
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                    minWidth: constraints.maxWidth,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth = ResponsiveLayout.contentMaxWidth(
+              constraints.maxWidth,
+              mobile: 450,
+              tablet: 700,
+              desktop: 820,
+            );
+            final horizontalPadding = ResponsiveLayout.pageHorizontalPadding(constraints.maxWidth);
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                  minWidth: constraints.maxWidth,
                   ),
-                  child: Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 450),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
+                child: Center(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: contentWidth),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: 16,
+                    ),
+                    child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [

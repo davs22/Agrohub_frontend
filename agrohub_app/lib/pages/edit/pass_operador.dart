@@ -32,6 +32,39 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
   Timer? _codigoTimer;
   String? _codigoGerado;
 
+  Future<Map<String, dynamic>?> _buscarUsuario() async {
+    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    final operador = await DatabaseHelper.instance.buscarPorColuna(
+      'operadores',
+      'cpf',
+      loginLimpo,
+    );
+    if (operador != null) {
+      return {'table': 'operadores', 'record': operador};
+    }
+
+    final comercio = await DatabaseHelper.instance.buscarPorColuna(
+      'comercios',
+      'documento',
+      loginLimpo,
+    );
+    if (comercio != null) {
+      return {'table': 'comercios', 'record': comercio};
+    }
+
+    final fazenda = await DatabaseHelper.instance.buscarPorColuna(
+      'fazendas',
+      'documento',
+      loginLimpo,
+    );
+    if (fazenda != null) {
+      return {'table': 'fazendas', 'record': fazenda};
+    }
+
+    return null;
+  }
+
   @override
   void dispose() {
     _codigoTimer?.cancel();
@@ -42,7 +75,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
   }
 
   Future<void> _enviarCodigo() async {
-    final cpfError = LoginValidators.validateCpf(_cpfController.text);
+    final cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
 
     setState(() {
       _cpfError = cpfError;
@@ -50,17 +83,12 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
 
     if (cpfError != null) return;
 
-    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final operador = await DatabaseHelper.instance.buscarPorColuna(
-      'operadores',
-      'cpf',
-      loginLimpo,
-    );
+    final usuario = await _buscarUsuario();
 
-    if (operador == null) {
+    if (usuario == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Operador nao encontrado no banco local.')),
+        const SnackBar(content: Text('Usuário não encontrado no banco local.')),
       );
       return;
     }
@@ -101,7 +129,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
   }
 
   Future<void> _validarERedefinirSenha() async {
-    final cpfError = LoginValidators.validateCpf(_cpfController.text);
+    final cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
     final senhaError = LoginValidators.validatePassword(
       _senhaController.text,
       minLength: 8,
@@ -126,25 +154,22 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
       return;
     }
 
-    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final operador = await DatabaseHelper.instance.buscarPorColuna(
-      'operadores',
-      'cpf',
-      loginLimpo,
-    );
-
-    final idLocal = operador?['id_local'] as int?;
+    final usuario = await _buscarUsuario();
+    final record = usuario?['record'] as Map<String, dynamic>?;
+    final table = usuario?['table'] as String?;
+    final idLocal = record?['id_local'] as int?;
     if (idLocal == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Operador nao encontrado no banco local.')),
+        const SnackBar(content: Text('Usuário não encontrado no banco local.')),
       );
       return;
     }
 
+    final senhaKey = table == 'comercios' || table == 'fazendas' ? 'senha_operacao' : 'senha';
     await DatabaseHelper.instance.atualizarRegistro(
-      'operadores',
-      {'senha': _senhaController.text},
+      table ?? 'operadores',
+      {senhaKey: _senhaController.text},
       idLocal,
     );
 
@@ -158,7 +183,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
   }
 
   bool get _podeRedefinirSenha {
-    final cpfValido = LoginValidators.validateCpf(_cpfController.text) == null;
+    final cpfValido = LoginValidators.validateCpfOrCnpj(_cpfController.text) == null;
     final senhaValida = LoginValidators.validatePassword(
       _senhaController.text,
       minLength: 8,
@@ -230,22 +255,22 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        InputComponent(
+                          InputComponent(
                           emoji: Icons.badge,
                           borderRadius: 20,
                           width: double.infinity,
                           height: 65,
-                          hint: 'CPF',
+                          hint: 'CNPJ/CPF',
                           controll: _cpfController,
                           typeInput: TextInputType.number,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
-                            CpfInputFormatter(),
+                            CpfOrCnpjInputFormatter(),
                           ],
                           errorText: _cpfError,
                           eventChange: (_) {
                             setState(() {
-                              _cpfError = LoginValidators.validateCpf(_cpfController.text);
+                              _cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
                             });
                           },
                         ),

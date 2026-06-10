@@ -13,6 +13,28 @@ class LocalAuthResult {
 }
 
 class LocalAuthService {
+  static Future<LocalAuthResult?> _authenticateCompanyOperator(
+    String tabela,
+    String login,
+    String password,
+  ) async {
+    final conta = await DatabaseHelper.instance.buscarPorColuna(
+      tabela,
+      'documento',
+      login,
+    );
+
+    if (conta != null && conta['senha_operacao'] == password) {
+      return LocalAuthResult(
+        role: tabela == 'fazendas' ? 'FAZENDA' : 'COMERCIO',
+        tableName: tabela,
+        record: conta,
+      );
+    }
+
+    return null;
+  }
+
   static Future<LocalAuthResult?> authenticateAdmin(
     String login,
     String password,
@@ -64,6 +86,16 @@ class LocalAuthService {
         tableName: 'operadores',
         record: operador,
       );
+    }
+
+    final comercio = await _authenticateCompanyOperator('comercios', login, password);
+    if (comercio != null) {
+      return comercio;
+    }
+
+    final fazenda = await _authenticateCompanyOperator('fazendas', login, password);
+    if (fazenda != null) {
+      return fazenda;
     }
 
     return null;

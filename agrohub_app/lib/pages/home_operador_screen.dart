@@ -10,6 +10,7 @@ import 'package:agrohub_app/pages/view/talhoes_operador.dart';
 import 'package:agrohub_app/services/local_cart_service.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class HomeOperadorScreen extends StatefulWidget {
@@ -34,10 +35,18 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
       return null;
     }
 
-    final operatorRecord = await DatabaseHelper.instance.buscarPorId(
+    Map<String, dynamic>? operatorRecord = await DatabaseHelper.instance.buscarPorId(
       'operadores',
       session.localId!,
     );
+
+    if (operatorRecord == null && (session.tableName == 'comercios' || session.tableName == 'fazendas')) {
+      operatorRecord = await DatabaseHelper.instance.buscarPorColuna(
+        session.tableName,
+        'documento',
+        session.login,
+      );
+    }
 
     final publishedLots = await DatabaseHelper.instance.listarComFiltro(
       'lotes',
@@ -82,10 +91,10 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
     return parsed.toLocal().toString().split('.').first;
   }
 
-  Widget _metricCard(String label, String value, IconData icon) {
+  Widget _metricCard(String label, String value, IconData icon, double width) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      width: 160,
+      width: width,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -135,6 +144,10 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
 
   Widget _featuredCard(Map<String, dynamic> lote) {
     final image = LocalImageService.decodeImage(lote['imagem_base64']?.toString());
+    final screenWidth = MediaQuery.of(context).size.width;
+    final compact = ResponsiveLayout.isCompact(screenWidth);
+    final imageWidth = ResponsiveLayout.listImageWidth(screenWidth);
+    final imageHeight = ResponsiveLayout.listImageHeight(screenWidth);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -143,25 +156,27 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.black87),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: image == null
-                ? Container(
-                    width: 74,
-                    height: 74,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.image_not_supported),
-                  )
-                : Image.memory(image, width: 74, height: 74, fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+      child: compact
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: image == null
+                      ? Container(
+                          width: double.infinity,
+                          height: 160,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image_not_supported),
+                        )
+                      : Image.memory(
+                          image,
+                          width: double.infinity,
+                          height: 160,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   _formatValue(lote['produto']),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -170,15 +185,15 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                 Text('Talhão: ${_formatValue(lote['talhao_nome'])}'),
                 Text('Data: ${_formatDate(lote['data_registro'])}'),
                 const SizedBox(height: 10),
-                  ButtonComponent(
-                    label: 'Ver detalhes',
-                    height: 40,
-                    borderRadius: 8,
-                    backgroundColor: const Color(0xFF24961F),
-                    borderColor: const Color(0xFF24961F),
-                    onPressed: () {
-                      final idLocal = lote['id_local'] as int?;
-                      if (idLocal == null) return;
+                ButtonComponent(
+                  label: 'Ver detalhes',
+                  height: 40,
+                  borderRadius: 8,
+                  backgroundColor: const Color(0xFF24961F),
+                  borderColor: const Color(0xFF24961F),
+                  onPressed: () {
+                    final idLocal = lote['id_local'] as int?; 
+                    if (idLocal == null) return;
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
@@ -189,10 +204,62 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                   },
                 ),
               ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: image == null
+                      ? Container(
+                          width: imageWidth,
+                          height: imageHeight,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image_not_supported),
+                        )
+                      : Image.memory(
+                          image,
+                          width: imageWidth,
+                          height: imageHeight,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _formatValue(lote['produto']),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Talhão: ${_formatValue(lote['talhao_nome'])}'),
+                      Text('Data: ${_formatDate(lote['data_registro'])}'),
+                      const SizedBox(height: 10),
+                      ButtonComponent(
+                        label: 'Ver detalhes',
+                        height: 40,
+                        borderRadius: 8,
+                        backgroundColor: const Color(0xFF24961F),
+                        borderColor: const Color(0xFF24961F),
+                        onPressed: () {
+                          final idLocal = lote['id_local'] as int?;
+                          if (idLocal == null) return;
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProductDetailScreen(idLocal: idLocal),
+                            ),
+                            (route) => route.isFirst,
+                          ).then((_) => setState(() => _future = _loadData()));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -274,10 +341,17 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
               );
             }
 
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+            final screenWidth = MediaQuery.of(context).size.width;
+            final contentWidth = ResponsiveLayout.homeMaxWidth(screenWidth);
+            final metricWidth = ResponsiveLayout.summaryCardWidth(screenWidth);
+
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: contentWidth),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
@@ -302,7 +376,7 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Bem-vindo, ${_formatValue(data.session.displayName ?? data.operatorRecord?['nome_completo'])}',
+                            'Bem-vindo, ${_formatValue(data.session.displayName ?? data.operatorRecord?['nome_completo'] ?? data.operatorRecord?['nome'])}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -322,9 +396,9 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                             spacing: 12,
                             runSpacing: 12,
                             children: [
-                              _metricCard('Marketplace', data.publishedLotsCount.toString(), Icons.storefront),
-                              _metricCard('Carrinho', data.cartCount.toString(), Icons.shopping_cart),
-                              _metricCard('Talhões', data.talhoesCount.toString(), Icons.grass),
+                              _metricCard('Marketplace', data.publishedLotsCount.toString(), Icons.storefront, metricWidth),
+                              _metricCard('Carrinho', data.cartCount.toString(), Icons.shopping_cart, metricWidth),
+                              _metricCard('Talhões', data.talhoesCount.toString(), Icons.grass, metricWidth),
                             ],
                           ),
                         ],
@@ -336,59 +410,85 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ButtonComponent(
-                            label: 'Marketplace',
-                            height: 46,
-                            borderRadius: 10,
-                            backgroundColor: const Color(0xFF24961F),
-                            borderColor: const Color(0xFF24961F),
-                            onPressed: _openMarketplace,
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final compact = ResponsiveLayout.isCompact(constraints.maxWidth);
+                        final firstRow = [
+                          Expanded(
+                            child: ButtonComponent(
+                              label: 'Marketplace',
+                              height: 46,
+                              borderRadius: 10,
+                              backgroundColor: const Color(0xFF24961F),
+                              borderColor: const Color(0xFF24961F),
+                              onPressed: _openMarketplace,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ButtonComponent(
-                            label: 'Carrinho',
-                            height: 46,
-                            borderRadius: 10,
-                            backgroundColor: Theme.of(context).colorScheme.surface,
-                            borderColor: Theme.of(context).colorScheme.outlineVariant,
-                            textColor: Theme.of(context).colorScheme.onSurface,
-                            onPressed: _openCarrinho,
+                          Expanded(
+                            child: ButtonComponent(
+                              label: 'Carrinho',
+                              height: 46,
+                              borderRadius: 10,
+                              backgroundColor: Theme.of(context).colorScheme.surface,
+                              borderColor: Theme.of(context).colorScheme.outlineVariant,
+                              textColor: Theme.of(context).colorScheme.onSurface,
+                              onPressed: _openCarrinho,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ButtonComponent(
-                            label: 'Perfil',
-                            height: 46,
-                            borderRadius: 10,
-                            backgroundColor: Theme.of(context).colorScheme.surface,
-                            borderColor: Theme.of(context).colorScheme.outlineVariant,
-                            textColor: Theme.of(context).colorScheme.onSurface,
-                            onPressed: _openPerfil,
+                        ];
+                        final secondRow = [
+                          Expanded(
+                            child: ButtonComponent(
+                              label: 'Perfil',
+                              height: 46,
+                              borderRadius: 10,
+                              backgroundColor: Theme.of(context).colorScheme.surface,
+                              borderColor: Theme.of(context).colorScheme.outlineVariant,
+                              textColor: Theme.of(context).colorScheme.onSurface,
+                              onPressed: _openPerfil,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ButtonComponent(
-                            label: 'Talhões',
-                            height: 46,
-                            borderRadius: 10,
-                            backgroundColor: Theme.of(context).colorScheme.surface,
-                            borderColor: Theme.of(context).colorScheme.outlineVariant,
-                            textColor: Theme.of(context).colorScheme.onSurface,
-                            onPressed: _openTalhoes,
+                          Expanded(
+                            child: ButtonComponent(
+                              label: 'Talhões',
+                              height: 46,
+                              borderRadius: 10,
+                              backgroundColor: Theme.of(context).colorScheme.surface,
+                              borderColor: Theme.of(context).colorScheme.outlineVariant,
+                              textColor: Theme.of(context).colorScheme.onSurface,
+                              onPressed: _openTalhoes,
+                            ),
                           ),
-                        ),
-                      ],
+                        ];
+
+                        Widget pairedButtons(List<Widget> buttons) {
+                          if (compact) {
+                            return Column(
+                              children: [
+                                buttons[0],
+                                const SizedBox(height: 8),
+                                buttons[1],
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              buttons[0],
+                              const SizedBox(width: 12),
+                              buttons[1],
+                            ],
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            pairedButtons(firstRow),
+                            const SizedBox(height: 12),
+                            pairedButtons(secondRow),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 22),
                     const Text(
@@ -413,6 +513,8 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                     else
                       ...data.publishedLots.map(_featuredCard),
                   ],
+                    ),
+                  ),
                 ),
               ),
             );

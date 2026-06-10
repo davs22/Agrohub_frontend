@@ -5,6 +5,7 @@ import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/lote.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class ViewLoteScreen extends StatefulWidget {
@@ -121,12 +122,12 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
     );
   }
 
-  Widget _image(String? base64Value) {
+  Widget _image(String? base64Value, double width, double height) {
     final bytes = LocalImageService.decodeImage(base64Value);
     if (bytes == null) {
       return Container(
-        width: 72,
-        height: 72,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(6),
@@ -139,8 +140,8 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
       borderRadius: BorderRadius.circular(6),
       child: Image.memory(
         bytes,
-        width: 72,
-        height: 72,
+        width: width,
+        height: height,
         fit: BoxFit.cover,
       ),
     );
@@ -156,6 +157,10 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
   @override
   Widget build(BuildContext context) {
     final lotes = _filteredLotes;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final compact = ResponsiveLayout.isCompact(screenWidth);
+    final imageWidth = ResponsiveLayout.listImageWidth(screenWidth);
+    final imageHeight = ResponsiveLayout.listImageHeight(screenWidth);
 
     return FlowBackGuard(
       child: Scaffold(
@@ -239,40 +244,66 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
                                       borderRadius: BorderRadius.circular(8),
                                       color: Colors.white,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            _image(lote['imagem_base64']),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
+                                    child: compact
+                                        ? Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              _image(lote['imagem_base64'], double.infinity, 180),
+                                              const SizedBox(height: 12),
+                                              _field('Produto:', lote['produto']),
+                                              _field('Talhão:', lote['talhao_nome']),
+                                              _field('Operador:', lote['operador_nome']),
+                                              if (idLocal != null)
+                                                Align(
+                                                  alignment: Alignment.centerRight,
+                                                  child: IconButton(
+                                                    onPressed: () => _openEdit(idLocal),
+                                                    icon: const Icon(Icons.edit),
+                                                  ),
+                                                ),
+                                              const SizedBox(height: 10),
+                                              _field('Quantidade:', lote['quantidade']),
+                                              _field('Unidade de medida:', lote['unidade_medida']),
+                                              _field('Status:', lote['status']),
+                                              _field('Data de registro:', _date(lote['data_registro'])),
+                                              _field('Data de atualização:', _date(lote['data_atualizacao'])),
+                                              _field('Status de sincronização:', lote['status_sincronizacao']),
+                                            ],
+                                          )
+                                        : Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _field('Produto:', lote['produto']),
-                                                  _field('Talhão:', lote['talhao_nome']),
-                                                  _field('Operador:', lote['operador_nome']),
+                                                  _image(lote['imagem_base64'], imageWidth, imageHeight),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        _field('Produto:', lote['produto']),
+                                                        _field('Talhão:', lote['talhao_nome']),
+                                                        _field('Operador:', lote['operador_nome']),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (idLocal != null)
+                                                    IconButton(
+                                                      onPressed: () => _openEdit(idLocal),
+                                                      icon: const Icon(Icons.edit),
+                                                    ),
                                                 ],
                                               ),
-                                            ),
-                                            if (idLocal != null)
-                                              IconButton(
-                                                onPressed: () => _openEdit(idLocal),
-                                                icon: const Icon(Icons.edit),
-                                              ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        _field('Quantidade:', lote['quantidade']),
-                                        _field('Unidade de medida:', lote['unidade_medida']),
-                                        _field('Status:', lote['status']),
-                                        _field('Data de registro:', _date(lote['data_registro'])),
-                                        _field('Data de atualização:', _date(lote['data_atualizacao'])),
-                                        _field('Status de sincronização:', lote['status_sincronizacao']),
-                                      ],
-                                    ),
+                                              const SizedBox(height: 10),
+                                              _field('Quantidade:', lote['quantidade']),
+                                              _field('Unidade de medida:', lote['unidade_medida']),
+                                              _field('Status:', lote['status']),
+                                              _field('Data de registro:', _date(lote['data_registro'])),
+                                              _field('Data de atualização:', _date(lote['data_atualizacao'])),
+                                              _field('Status de sincronização:', lote['status_sincronizacao']),
+                                            ],
+                                          ),
                                   );
                                 },
                               ),

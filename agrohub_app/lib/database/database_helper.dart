@@ -238,6 +238,28 @@ class DatabaseHelper {
     );
   }
 
+  Future<int> salvarOuAtualizarPorColunaUnica(
+    String tabela, {
+    required String colunaUnica,
+    required Object? valorUnico,
+    required Map<String, dynamic> dados,
+  }) async {
+    final existente = await buscarPorColuna(
+      tabela,
+      colunaUnica,
+      valorUnico,
+    );
+
+    if (existente != null) {
+      final idLocal = existente['id_local'] as int?;
+      if (idLocal != null) {
+        return atualizarRegistro(tabela, dados, idLocal);
+      }
+    }
+
+    return inserirRegistro(tabela, dados);
+  }
+
   Future<int> atualizarRegistro(
     String tabela,
     Map<String, dynamic> dados,
@@ -411,6 +433,7 @@ class DatabaseHelper {
       tabela,
       where: '$coluna = ?',
       whereArgs: [valor],
+      orderBy: 'id_local DESC',
       limit: 1,
     );
     if (resultado.isEmpty) {

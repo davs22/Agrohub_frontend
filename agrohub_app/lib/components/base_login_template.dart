@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 
 class BaseLoginTemplate extends StatelessWidget {
   final String title;
@@ -50,6 +51,8 @@ class BaseLoginTemplate extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
+            final contentWidth = ResponsiveLayout.contentMaxWidth(constraints.maxWidth);
+            final horizontalPadding = ResponsiveLayout.pageHorizontalPadding(constraints.maxWidth);
             return SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -58,8 +61,11 @@ class BaseLoginTemplate extends StatelessWidget {
                 ),
                 child: Center(
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                    constraints: BoxConstraints(maxWidth: contentWidth),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: 30,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,

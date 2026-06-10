@@ -8,6 +8,7 @@ import 'package:agrohub_app/pages/view/marketplace.dart';
 import 'package:agrohub_app/pages/view/operador.dart';
 import 'package:agrohub_app/pages/view/talhoes.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class HomeAdmScreen extends StatefulWidget {
@@ -99,9 +100,9 @@ class _HomeAdmScreenState extends State<HomeAdmScreen> {
     );
   }
 
-  Widget _summaryCard(String label, int value) {
+  Widget _summaryCard(String label, int value, double width) {
     return Container(
-      width: 150,
+      width: width,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -231,10 +232,17 @@ class _HomeAdmScreenState extends State<HomeAdmScreen> {
             final isAdmin = data.session.role == 'COMERCIO' || data.session.role == 'FAZENDA';
             final isBusiness = !isOperator;
 
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: ListView(
-                children: [
+            final screenWidth = MediaQuery.of(context).size.width;
+            final contentWidth = ResponsiveLayout.homeMaxWidth(screenWidth);
+            final summaryWidth = ResponsiveLayout.summaryCardWidth(screenWidth);
+
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: contentWidth),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ListView(
+                    children: [
                   const TextComponent(
                     text: 'Painel do administrador',
                     fontSize: 18,
@@ -245,10 +253,10 @@ class _HomeAdmScreenState extends State<HomeAdmScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     children: [
-                      _summaryCard('Operadores', data.totalOperadores),
-                      _summaryCard('Talhões', data.totalTalhoes),
-                      _summaryCard('Lotes', data.totalLotes),
-                      _summaryCard('Marketplace', data.totalMarketplace),
+                      _summaryCard('Operadores', data.totalOperadores, summaryWidth),
+                      _summaryCard('Talhões', data.totalTalhoes, summaryWidth),
+                      _summaryCard('Lotes', data.totalLotes, summaryWidth),
+                      _summaryCard('Marketplace', data.totalMarketplace, summaryWidth),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -310,6 +318,8 @@ class _HomeAdmScreenState extends State<HomeAdmScreen> {
                   const SizedBox(height: 8),
                   _quickAction('Abrir marketplace', _openMarketplace),
                 ],
+                  ),
+                ),
               ),
             );
           },

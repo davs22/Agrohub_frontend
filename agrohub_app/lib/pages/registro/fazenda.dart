@@ -116,7 +116,12 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
       'status': 'ATIVO',
     };
 
-    await DatabaseHelper.instance.inserirRegistro('fazendas', dadosLocais);
+    await DatabaseHelper.instance.salvarOuAtualizarPorColunaUnica(
+      'fazendas',
+      colunaUnica: 'documento',
+      valorUnico: documentoLimpo,
+      dados: dadosLocais,
+    );
 
     if (!mounted) return;
 

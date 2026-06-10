@@ -64,7 +64,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
   }
 
   Future<void> _validarEEntrar() async {
-    final cpfError = LoginValidators.validateCpf(_cpfController.text);
+    final cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
     final senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
 
     setState(() {
@@ -105,8 +105,8 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       tableName: result.tableName,
       flowStage: FlowNavigation.operatorHomeStage,
       localId: result.record['id_local'] as int?,
-      displayName: result.record['nome_completo']?.toString(),
-      documento: result.record['cpf']?.toString(),
+      displayName: result.record['nome_completo']?.toString() ?? result.record['nome']?.toString(),
+      documento: result.record['cpf']?.toString() ?? result.record['documento']?.toString(),
     );
 
     if (!mounted) return;
@@ -159,18 +159,18 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
             borderRadius: 20,
             width: double.infinity,
             height: 65,
-            hint: 'CPF',
+            hint: 'CNPJ/CPF',
             controll: _cpfController,
             typeInput: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
-              CpfInputFormatter(),
+              CpfOrCnpjInputFormatter(),
             ],
             errorText: _cpfError,
             eventChange: (_) {
               if (_cpfError != null) {
                 setState(() {
-                  _cpfError = LoginValidators.validateCpf(_cpfController.text);
+                  _cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
                 });
               }
             },

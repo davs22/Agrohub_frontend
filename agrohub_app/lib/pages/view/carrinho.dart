@@ -7,6 +7,7 @@ import 'package:agrohub_app/services/local_cart_service.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class CarrinhoScreen extends StatefulWidget {
@@ -49,12 +50,12 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
     return parsed.toLocal().toString().split('.').first;
   }
 
-  Widget _image(String? base64Value) {
+  Widget _image(String? base64Value, double width, double height) {
     final bytes = LocalImageService.decodeImage(base64Value);
     if (bytes == null) {
       return Container(
-        width: 74,
-        height: 74,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(8),
@@ -67,8 +68,8 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       borderRadius: BorderRadius.circular(8),
       child: Image.memory(
         bytes,
-        width: 74,
-        height: 74,
+        width: width,
+        height: height,
         fit: BoxFit.cover,
       ),
     );
@@ -103,6 +104,11 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final compact = ResponsiveLayout.isCompact(screenWidth);
+    final imageWidth = ResponsiveLayout.listImageWidth(screenWidth);
+    final imageHeight = ResponsiveLayout.listImageHeight(screenWidth);
+
     return FlowBackGuard(
       child: Scaffold(
       appBar: AppBarComponent(
@@ -186,23 +192,21 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(color: Colors.black),
                                   ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      _image(item['imagem_base64']?.toString()),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
+                                  child: compact
+                                      ? Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            _image(item['imagem_base64']?.toString(), double.infinity, 160),
+                                            const SizedBox(height: 12),
                                             _line('Produto:', item['produto']),
                                             _line('Data_registro:', _formatDate(item['data_registro'])),
                                             _line('Talhão:', item['talhao_nome']),
                                             _line('Operador:', item['operador_nome']),
                                             const SizedBox(height: 10),
-                                            Row(
+                                            Column(
                                               children: [
-                                                Expanded(
+                                                SizedBox(
+                                                  width: double.infinity,
                                                   child: ButtonComponent(
                                                     label: 'Mais detalhes',
                                                     height: 38,
@@ -212,27 +216,70 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                                                     onPressed: loteId == null ? null : () => _openDetails(loteId),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 10),
-                                                Container(
-                                                  width: 48,
-                                                  height: 38,
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(0xFFFF1D1D),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                  ),
-                                                  child: IconButton(
-                                                    padding: EdgeInsets.zero,
+                                                const SizedBox(height: 10),
+                                                SizedBox(
+                                                  width: double.infinity,
+                                                  child: ButtonComponent(
+                                                    label: 'Excluir',
+                                                    height: 38,
+                                                    borderRadius: 6,
+                                                    backgroundColor: const Color(0xFFFF1D1D),
+                                                    borderColor: const Color(0xFFFF1D1D),
+                                                    textColor: Colors.black,
                                                     onPressed: idLocal == null ? null : () => _removerItem(idLocal),
-                                                    icon: const Icon(Icons.delete, color: Colors.black),
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ],
+                                        )
+                                      : Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            _image(item['imagem_base64']?.toString(), imageWidth, imageHeight),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  _line('Produto:', item['produto']),
+                                                  _line('Data_registro:', _formatDate(item['data_registro'])),
+                                                  _line('Talhão:', item['talhao_nome']),
+                                                  _line('Operador:', item['operador_nome']),
+                                                  const SizedBox(height: 10),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: ButtonComponent(
+                                                          label: 'Mais detalhes',
+                                                          height: 38,
+                                                          borderRadius: 6,
+                                                          backgroundColor: const Color(0xFF24961F),
+                                                          borderColor: const Color(0xFF24961F),
+                                                          onPressed: loteId == null ? null : () => _openDetails(loteId),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      Container(
+                                                        width: 48,
+                                                        height: 38,
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(0xFFFF1D1D),
+                                                          borderRadius: BorderRadius.circular(6),
+                                                        ),
+                                                        child: IconButton(
+                                                          padding: EdgeInsets.zero,
+                                                          onPressed: idLocal == null ? null : () => _removerItem(idLocal),
+                                                          icon: const Icon(Icons.delete, color: Colors.black),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
                                 );
                               },
                             ),

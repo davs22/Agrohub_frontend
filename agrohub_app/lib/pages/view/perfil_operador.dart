@@ -31,10 +31,18 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
       return null;
     }
 
-    final record = await DatabaseHelper.instance.buscarPorId(
+    Map<String, dynamic>? record = await DatabaseHelper.instance.buscarPorId(
       'operadores',
       session.localId!,
     );
+
+    if (record == null && (session.tableName == 'comercios' || session.tableName == 'fazendas')) {
+      record = await DatabaseHelper.instance.buscarPorColuna(
+        session.tableName,
+        'documento',
+        session.login,
+      );
+    }
 
     return _PerfilOperadorData(session: session, record: record);
   }
@@ -126,6 +134,7 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
 
             final record = data.record!;
             final idLocal = record['id_local'] as int?;
+            final isOperatorRecord = record.containsKey('documento_admin');
 
             return Padding(
               padding: const EdgeInsets.all(16),
@@ -149,8 +158,8 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _field('Id_operador:', record['id_local']),
-                        _field('Nome_completo:', record['nome_completo']),
-                        _field('Cpf:', record['cpf']),
+                        _field('Nome_completo:', record['nome_completo'] ?? record['nome']),
+                        _field('Cpf:', record['cpf'] ?? record['documento']),
                         _field('Telefone:', record['telefone']),
                         _field('Email:', record['email']),
                         _field('Status:', record['status']),
@@ -160,15 +169,17 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ButtonComponent(
-                    label: 'Editar perfil',
-                    height: 46,
-                    borderRadius: 10,
-                    backgroundColor: const Color(0xFF24961F),
-                    borderColor: const Color(0xFF24961F),
-                    onPressed: idLocal == null ? null : () => _openEdit(idLocal),
-                  ),
-                  const SizedBox(height: 10),
+                  if (isOperatorRecord) ...[
+                    ButtonComponent(
+                      label: 'Editar perfil',
+                      height: 46,
+                      borderRadius: 10,
+                      backgroundColor: const Color(0xFF24961F),
+                      borderColor: const Color(0xFF24961F),
+                      onPressed: idLocal == null ? null : () => _openEdit(idLocal),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   ButtonComponent(
                     label: 'Redefinir senha',
                     height: 46,
