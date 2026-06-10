@@ -3,11 +3,9 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/status_selector.dart';
 import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/modules/http_register.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterTalhaoScreen extends StatefulWidget {
   const RegisterTalhaoScreen({super.key});
@@ -19,9 +17,9 @@ class RegisterTalhaoScreen extends StatefulWidget {
 class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
   final TextEditingController _usuarioIdController = TextEditingController();
   final TextEditingController _nomeTalhaoController = TextEditingController();
-  final TextEditingController _tamanhoHectaresController =
-      TextEditingController();
+  final TextEditingController _tamanhoHectaresController = TextEditingController();
   final TextEditingController _culturaAtualController = TextEditingController();
+  String? _operadorSelecionadoNome;
 
   bool _ativo = true;
   bool _isLoading = false;
@@ -41,20 +39,24 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
 
   Future<void> _validarFormulario() async {
     final usuarioIdError = LoginValidators.validateRequiredText(
-        _usuarioIdController.text,
-        fieldName: 'o id da instância',
-        minLength: 3);
+      _usuarioIdController.text,
+      fieldName: 'o id da instância',
+      minLength: 3,
+    );
     final nomeTalhaoError = LoginValidators.validateRequiredText(
-        _nomeTalhaoController.text,
-        fieldName: 'o nome do talhão',
-        minLength: 2);
+      _nomeTalhaoController.text,
+      fieldName: 'o nome do talhão',
+      minLength: 2,
+    );
     final tamanhoHectaresError = LoginValidators.validatePositiveNumber(
-        _tamanhoHectaresController.text,
-        fieldName: 'o tamanho em hectares');
+      _tamanhoHectaresController.text,
+      fieldName: 'o tamanho em hectares',
+    );
     final culturaAtualError = LoginValidators.validateRequiredText(
-        _culturaAtualController.text,
-        fieldName: 'a cultura atual',
-        minLength: 2);
+      _culturaAtualController.text,
+      fieldName: 'a cultura atual',
+      minLength: 2,
+    );
 
     setState(() {
       _usuarioIdError = usuarioIdError;
@@ -76,33 +78,16 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
       _isLoading = true;
     });
 
-    final tamanhoHectares =
-        _tamanhoHectaresController.text.replaceAll(',', '.');
-    final status = _ativo ? 'ATIVO' : 'INATIVO';
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token') ?? '';
-
-    final Map<String, dynamic> dadosLocais = {
+    final tamanhoHectares = _tamanhoHectaresController.text.replaceAll(',', '.');
+    final dadosLocais = {
       'usuario_id': _usuarioIdController.text,
       'nome': _nomeTalhaoController.text,
       'tamanho_hectares': double.tryParse(tamanhoHectares) ?? 0.0,
       'cultura_atual': _culturaAtualController.text,
-      'status': status,
-      'status_sincronizacao': 0,
+      'status': _ativo ? 'ATIVO' : 'INATIVO',
     };
 
-    final idSalvo =
-        await DatabaseHelper.instance.inserirRegistro('talhoes', dadosLocais);
-
-    final Map<String, dynamic> talhaoData = {
-      'nomeTalhao': _nomeTalhaoController.text,
-      'tamanhoHectares': tamanhoHectares,
-      'culturaAtual': _culturaAtualController.text,
-      'status': status,
-      'usuarioId': _usuarioIdController.text,
-    };
-
-    final result = await talhoesRegister(talhaoData, token);
+    await DatabaseHelper.instance.inserirRegistro('talhoes', dadosLocais);
 
     if (!mounted) return;
 
@@ -110,22 +95,62 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
       _isLoading = false;
     });
 
-    if (result.status >= 200 && result.status < 300) {
-      await DatabaseHelper.instance.marcarComoSincronizado('talhoes', idSalvo);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Talhão registrado e sincronizado com a nuvem!')),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Modo Offline: Salvo localmente. Erro na nuvem: ${result.message}')),
-      );
-      Navigator.pop(context);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Talhão salvo no banco local.')),
+    );
+    Navigator.pop(context);
+  }
+
+  Future<void> _selecionarOperador() async {
+    final operadores = await DatabaseHelper.instance.listarTodos(
+      'operadores',
+      orderBy: 'id_local DESC',
+    );
+
+    if (!mounted) return;
+
+    final selecionado = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.75,
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Selecionar operador',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: operadores.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final operador = operadores[index];
+                      return ListTile(
+                        title: Text(operador['nome_completo']?.toString() ?? '-'),
+                        subtitle: Text('ID ${operador['id_local']} • CPF ${operador['cpf'] ?? '-'}'),
+                        onTap: () => Navigator.pop(context, operador),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selecionado == null || !mounted) return;
+
+    setState(() {
+      _usuarioIdController.text = selecionado['id_local']?.toString() ?? '';
+      _operadorSelecionadoNome = selecionado['nome_completo']?.toString();
+    });
   }
 
   @override
@@ -141,6 +166,7 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
         DrawerMenuOption.editarTalhao,
         DrawerMenuOption.registrarLote,
         DrawerMenuOption.editarLote,
+        DrawerMenuOption.marketplace,
         DrawerMenuOption.configuracoes,
         DrawerMenuOption.logout,
       },
@@ -152,34 +178,48 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Id_instância',
+          hint: 'Selecionar operador',
           controll: _usuarioIdController,
+          readOnly: true,
+          onTap: _selecionarOperador,
           errorText: _usuarioIdError,
           eventChange: (_) {
             setState(() {
               _usuarioIdError = LoginValidators.validateRequiredText(
-                  _usuarioIdController.text,
-                  fieldName: 'o id da instância',
-                  minLength: 3);
+                _usuarioIdController.text,
+                fieldName: 'o operador',
+                minLength: 3,
+              );
             });
           },
         ),
+        if (_operadorSelecionadoNome != null) ...[
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Operador selecionado: $_operadorSelecionadoNome',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         InputComponent(
           emoji: Icons.grass,
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Nome_talhão',
+          hint: 'Nome do talhão',
           controll: _nomeTalhaoController,
           typeInput: TextInputType.name,
           errorText: _nomeTalhaoError,
           eventChange: (_) {
             setState(() {
               _nomeTalhaoError = LoginValidators.validateRequiredText(
-                  _nomeTalhaoController.text,
-                  fieldName: 'o nome do talhão',
-                  minLength: 2);
+                _nomeTalhaoController.text,
+                fieldName: 'o nome do talhão',
+                minLength: 2,
+              );
             });
           },
         ),
@@ -189,7 +229,7 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Tamanho_hectares',
+          hint: 'Tamanho (hectares)',
           controll: _tamanhoHectaresController,
           typeInput: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
@@ -199,8 +239,9 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
           eventChange: (_) {
             setState(() {
               _tamanhoHectaresError = LoginValidators.validatePositiveNumber(
-                  _tamanhoHectaresController.text,
-                  fieldName: 'o tamanho em hectares');
+                _tamanhoHectaresController.text,
+                fieldName: 'o tamanho em hectares',
+              );
             });
           },
         ),
@@ -210,15 +251,16 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Cultura_atual',
+          hint: 'Cultura atual',
           controll: _culturaAtualController,
           errorText: _culturaAtualError,
           eventChange: (_) {
             setState(() {
               _culturaAtualError = LoginValidators.validateRequiredText(
-                  _culturaAtualController.text,
-                  fieldName: 'a cultura atual',
-                  minLength: 2);
+                _culturaAtualController.text,
+                fieldName: 'a cultura atual',
+                minLength: 2,
+              );
             });
           },
         ),

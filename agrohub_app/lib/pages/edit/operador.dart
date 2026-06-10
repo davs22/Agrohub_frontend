@@ -1,21 +1,19 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:agrohub_app/components/base_edit_template.dart';
+import 'package:agrohub_app/components/button.dart';
+import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
-import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EditOperadorScreen extends StatefulWidget {
-  final String usuarioIdNuvem;
   final int idLocal;
 
   const EditOperadorScreen({
-    super.key, 
-    required this.usuarioIdNuvem, 
+    super.key,
     required this.idLocal,
   });
 
@@ -39,6 +37,16 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
   String? _emailError;
   String? _senhaOperadorError;
   bool _isLoading = false;
+  bool _canManage = false;
+  bool _accessChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPermissions();
+    _loadOperador();
+    _loadAdminDocumento();
+  }
 
   @override
   void dispose() {
@@ -51,8 +59,55 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     super.dispose();
   }
 
+  Future<void> _loadOperador() async {
+    final record = await DatabaseHelper.instance.buscarPorId('operadores', widget.idLocal);
+    if (record == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _nomeController.text = record['nome_completo']?.toString() ?? '';
+      _cpfController.text = record['cpf']?.toString() ?? '';
+      _documentoController.text = record['documento_admin']?.toString() ?? '';
+      _telefoneController.text = record['telefone']?.toString() ?? '';
+      _emailController.text = record['email']?.toString() ?? '';
+      _senhaOperadorController.text = record['senha']?.toString() ?? '';
+      _ativo = record['status']?.toString().toUpperCase() != 'INATIVO';
+    });
+  }
+
+  Future<void> _loadAdminDocumento() async {
+    final session = await SessionService.loadSession();
+    if (!mounted || session == null) {
+      return;
+    }
+
+    setState(() {
+      _documentoController.text = session.documento ?? session.login;
+    });
+  }
+
+  Future<void> _loadPermissions() async {
+    final session = await SessionService.loadSession();
+    if (!mounted) return;
+
+    final allowed = session != null &&
+        (session.role == 'ADMIN' || session.role == 'COMERCIO' || session.role == 'FAZENDA');
+
+    setState(() {
+      _canManage = allowed;
+      _accessChecked = true;
+    });
+  }
+
   Future<void> _validarFormulario() async {
-    final nomeError = LoginValidators.validateRequiredText(_nomeController.text, fieldName: 'o nome do operador', minLength: 3);
+    if (!_canManage) return;
+
+    final nomeError = LoginValidators.validateRequiredText(
+      _nomeController.text,
+      fieldName: 'o nome do operador',
+      minLength: 3,
+    );
     final documentoError = LoginValidators.validateCpfOrCnpj(_documentoController.text);
     final telefoneError = LoginValidators.validatePhone(_telefoneController.text);
     final emailError = LoginValidators.validateEmail(_emailController.text);
@@ -69,80 +124,133 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     });
 
     final hasError = [
-      nomeError, documentoError, _cpfError, telefoneError, emailError, senhaOperadorError,
+      nomeError,
+      documentoError,
+      cpfError,
+      telefoneError,
+      emailError,
+      senhaOperadorError,
     ].any((error) => error != null);
 
     if (hasError) return;
 
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
 
     final cpfLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final documentoLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
     final telefoneLimpo = _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
-    final Map<String, dynamic> dadosLocais = {
-      "nome_completo": _nomeController.text,
-      "cpf": cpfLimpo,
-      "email": _emailController.text,
-      "telefone": telefoneLimpo,
-      "senha": _senhaOperadorController.text,
-      "status_sincronizacao": 0,
+    final dadosLocais = {
+      'documento_admin': documentoLimpo,
+      'nome_completo': _nomeController.text,
+      'cpf': cpfLimpo,
+      'email': _emailController.text,
+      'telefone': telefoneLimpo,
+      'senha': _senhaOperadorController.text,
+      'status': _ativo ? 'ATIVO' : 'INATIVO',
     };
 
-    await DatabaseHelper.instance.atualizarRegistro('operadores', dadosLocais, widget.idLocal);
+    await DatabaseHelper.instance.atualizarRegistro(
+      'operadores',
+      dadosLocais,
+      widget.idLocal,
+    );
 
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token') ?? '';
+    if (!mounted) return;
 
-    final Map<String, dynamic> userData = {
-      "nome": _nomeController.text,
-      "email": _emailController.text,
-      "telefone": telefoneLimpo,
-      "endereco": "0", 
-      "login": cpfLimpo,
-      "senha": _senhaOperadorController.text,
-      "role": "OPERADOR",
-      "status": _ativo ? "ATIVO" : "INATIVO",
-    };
+    setState(() {
+      _isLoading = false;
+    });
 
-    try {
-      final response = await http.put(
-        Uri.parse('https://agrohub.discloud.app/user/update/${widget.usuarioIdNuvem}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(userData),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Operador atualizado no banco local.')),
+    );
+    Navigator.pop(context);
+  }
 
-      if (!mounted) return;
-      setState(() { _isLoading = false; });
+  Future<void> _excluirOperador() async {
+    if (!_canManage) return;
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        await DatabaseHelper.instance.marcarComoSincronizado('operadores', widget.idLocal);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Operador editado e sincronizado com a nuvem!')),
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Excluir operador'),
+          content: const Text('Esse operador sera excluido permanentemente do banco local.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Excluir'),
+            ),
+          ],
         );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Modo Offline: Atualizado localmente. Erro na API: ${response.statusCode}')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() { _isLoading = false; });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Modo Offline: Atualizado localmente. Sem internet para enviar à nuvem.')),
-      );
-      Navigator.pop(context);
-    }
+      },
+    );
+
+    if (confirmar != true) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await DatabaseHelper.instance.deletarOperadorComDependencias(widget.idLocal);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Operador excluido do banco local.')),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_accessChecked && !_canManage) {
+      return Scaffold(
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
+              ),
+            ),
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Administrador',
+          visibleOptions: {
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Apenas o administrador pode editar operadores.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      );
+    }
+
     return BaseEditTemplate(
-      title: 'Editar Operador',
+      title: 'Editar operador',
       headerDrawerTitle: 'Administrador',
       visibleOptions: const {
         DrawerMenuOption.homeAdmin,
@@ -180,9 +288,10 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'CNPJ/CPF de administrador',
+          hint: 'CNPJ/CPF do Administrador',
           controll: _documentoController,
           typeInput: TextInputType.number,
+          readOnly: true,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
             CpfOrCnpjInputFormatter(),
@@ -203,11 +312,14 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
           hint: 'Nome completo',
           controll: _nomeController,
           typeInput: TextInputType.name,
-          inputFormatters: const [],
           errorText: _nomeError,
           eventChange: (_) {
             setState(() {
-              _nomeError = LoginValidators.validateRequiredText(_nomeController.text, fieldName: 'o nome do operador', minLength: 3);
+              _nomeError = LoginValidators.validateRequiredText(
+                _nomeController.text,
+                fieldName: 'o nome do operador',
+                minLength: 3,
+              );
             });
           },
         ),
@@ -242,7 +354,6 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
           showVisibilityToggle: false,
           controll: _emailController,
           typeInput: TextInputType.emailAddress,
-          inputFormatters: const [],
           errorText: _emailError,
           eventChange: (_) {
             setState(() {
@@ -256,13 +367,16 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Nova Senha',
+          hint: 'Senha',
           controll: _senhaOperadorController,
           ephemeral: true,
           errorText: _senhaOperadorError,
           eventChange: (_) {
             setState(() {
-              _senhaOperadorError = LoginValidators.validatePassword(_senhaOperadorController.text, minLength: 8);
+              _senhaOperadorError = LoginValidators.validatePassword(
+                _senhaOperadorController.text,
+                minLength: 8,
+              );
             });
           },
         ),
@@ -299,6 +413,18 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 20),
+        ButtonComponent(
+          label: 'Excluir operador',
+          icon: Icons.delete_forever,
+          width: double.infinity,
+          height: 46,
+          borderRadius: 4,
+          backgroundColor: Colors.red,
+          borderColor: Colors.red,
+          textColor: Colors.white,
+          onPressed: _excluirOperador,
         ),
       ],
     );

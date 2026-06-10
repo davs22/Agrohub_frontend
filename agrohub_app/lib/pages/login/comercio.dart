@@ -1,15 +1,14 @@
-import 'package:agrohub_app/components/input.dart';
+import 'package:agrohub_app/components/base_login_template.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
+import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/registro/comercio.dart';
-import 'package:agrohub_app/modules/http_login.dart';
+import 'package:agrohub_app/services/local_auth_service.dart';
+import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
-import 'package:agrohub_app/components/base_login_template.dart';
-import 'package:agrohub_app/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginComercioScreen extends StatefulWidget {
   const LoginComercioScreen({super.key});
@@ -42,60 +41,61 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
       _senhaError = senhaError;
     });
 
-    if (documentoError != null || senhaError != null) return;
+    if (documentoError != null || senhaError != null) {
+      return;
+    }
 
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
 
     final loginLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final prefs = await SharedPreferences.getInstance();
-
-    try {
-      final result = await loginRequest(loginLimpo, _senhaController.text);
-
-      if (result.token != null) {
-        await prefs.setString('token', result.token!);
-        await prefs.setString('role', 'COMERCIO'); 
-        
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeAdmScreen()));
-        return;
-      }
-    } catch (e) {
-      debugPrint('Falha na API, tentando modo offline...');
-    }
-
-    final db = await DatabaseHelper.instance.database;
-    final comercioLocal = await db.query('comercios', where: 'documento = ?', whereArgs: [loginLimpo]);
-    final fazendaLocal = await db.query('fazendas', where: 'documento = ?', whereArgs: [loginLimpo]);
+    final result = await LocalAuthService.authenticateAdmin(
+      loginLimpo,
+      _senhaController.text,
+    );
 
     if (!mounted) return;
-    setState(() { _isLoading = false; });
 
-    if (comercioLocal.isNotEmpty || fazendaLocal.isNotEmpty) {
-      await prefs.setString('token', 'OFFLINE_MODE');
-      await prefs.setString('role', comercioLocal.isNotEmpty ? 'COMERCIO' : 'FAZENDA');
-      
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sem internet: Autenticado no Modo Offline')),
+        const SnackBar(content: Text('Credenciais incorretas ou cadastro local não encontrado.')),
       );
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeAdmScreen()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha na conexão e usuário não encontrado offline.')),
-      );
+      return;
     }
+
+    await SessionService.saveSession(
+      role: result.role,
+      login: loginLimpo,
+      tableName: result.tableName,
+      localId: result.record['id_local'] as int?,
+      displayName: result.record['nome']?.toString(),
+      documento: result.record['documento']?.toString(),
+    );
+
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BaseLoginTemplate(
-      title: 'Comercio / Fazenda',
+      title: 'Administrador',
       svgPath: 'lib/interface_icons/fazenda.svg',
-      headerDrawerTitle: 'Comercio',
+      headerDrawerTitle: 'Administrador',
       visibleOptions: const {
         DrawerMenuOption.configuracoes,
-        DrawerMenuOption.registrarComercio,
-        DrawerMenuOption.registrarFazenda,
+        DrawerMenuOption.novaSenhaAdmin,
+        DrawerMenuOption.operador,
+        DrawerMenuOption.logout,
       },
       isLoading: _isLoading,
       onSubmit: _validarEEntrar,
@@ -106,7 +106,11 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
         ),
         child: const Text(
           'Registre-se',
-          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 16, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
       fields: [
@@ -143,7 +147,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           borderRadius: 20,
           width: double.infinity,
           height: 65,
-          hint: '8 digitos',
+          hint: '8 Dígitos',
           hintColor: Colors.black.withValues(alpha: 0.5),
           ephemeral: true,
           controll: _senhaController,

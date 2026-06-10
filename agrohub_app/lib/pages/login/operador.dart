@@ -1,15 +1,14 @@
-import 'package:agrohub_app/components/input.dart';
-import 'package:agrohub_app/components/drawer_menu.dart';
-import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart';
-import 'package:agrohub_app/pages/edit/pass_operador.dart';
-import 'package:agrohub_app/modules/http_login.dart';
-import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:agrohub_app/components/base_login_template.dart';
-import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/components/drawer_menu.dart';
+import 'package:agrohub_app/components/input.dart';
+import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/pages/edit/pass_operador.dart';
+import 'package:agrohub_app/pages/home_operador_screen.dart';
+import 'package:agrohub_app/services/local_auth_service.dart';
+import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginOperadorScreen extends StatefulWidget {
   const LoginOperadorScreen({super.key});
@@ -35,58 +34,55 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   Future<void> _validarEEntrar() async {
     final cpfError = LoginValidators.validateCpf(_cpfController.text);
-    final senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 6);
+    final senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
 
     setState(() {
       _cpfError = cpfError;
       _senhaError = senhaError;
     });
 
-    if (cpfError != null || senhaError != null) return;
-
-    setState(() { _isLoading = true; });
-
-    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final prefs = await SharedPreferences.getInstance();
-    
-    try {
-      final result = await loginRequest(loginLimpo, _senhaController.text);
-      
-      if (result.token != null) {
-        await prefs.setString('token', result.token!);
-        await prefs.setString('role', 'OPERADOR');
-        
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeAdmScreen()));
-        return;
-      }
-    } catch (e) {
-      debugPrint('Falha na API, tentando modo offline...');
+    if (cpfError != null || senhaError != null) {
+      return;
     }
 
-    final db = await DatabaseHelper.instance.database;
-    final userLocal = await db.query(
-      'operadores', 
-      where: 'cpf = ? AND senha = ?', 
-      whereArgs: [loginLimpo, _senhaController.text]
+    setState(() {
+      _isLoading = true;
+    });
+
+    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final result = await LocalAuthService.authenticateOperator(
+      loginLimpo,
+      _senhaController.text,
     );
 
     if (!mounted) return;
-    setState(() { _isLoading = false; });
 
-    if (userLocal.isNotEmpty) {
-      await prefs.setString('token', 'OFFLINE_MODE');
-      await prefs.setString('role', 'OPERADOR');
-      
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sem internet: Autenticado no Modo Offline')),
+        const SnackBar(content: Text('Credenciais incorretas ou cadastro local não encontrado.')),
       );
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeAdmScreen()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha na conexão e usuário não encontrado offline.')),
-      );
+      return;
     }
+
+    await SessionService.saveSession(
+      role: result.role,
+      login: loginLimpo,
+      tableName: result.tableName,
+      localId: result.record['id_local'] as int?,
+      displayName: result.record['nome_completo']?.toString(),
+      documento: result.record['cpf']?.toString(),
+    );
+
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeOperadorScreen()),
+    );
   }
 
   @override
@@ -94,10 +90,10 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     return BaseLoginTemplate(
       title: 'Operador',
       svgPath: 'lib/interface_icons/operador.svg',
-      headerDrawerTitle: 'Comercio',
+      headerDrawerTitle: 'Operador',
       visibleOptions: const {
-        DrawerMenuOption.novaSenhaOperador,
         DrawerMenuOption.administrador,
+        DrawerMenuOption.novaSenhaOperador,
         DrawerMenuOption.configuracoes,
         DrawerMenuOption.logout,
       },
@@ -110,7 +106,11 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
         ),
         child: const Text(
           'Esqueci minha senha',
-          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 16, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
       fields: [
@@ -149,7 +149,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
           borderRadius: 20,
           width: double.infinity,
           height: 65,
-          hint: '6 digitos',
+          hint: '8 Dígitos',
           hintColor: Colors.black.withValues(alpha: 0.5),
           ephemeral: true,
           controll: _senhaController,
@@ -157,7 +157,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
           eventChange: (_) {
             if (_senhaError != null) {
               setState(() {
-                _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 6);
+                _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
               });
             }
           },

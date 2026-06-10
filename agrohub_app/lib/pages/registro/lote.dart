@@ -3,13 +3,11 @@ import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/status_selector.dart';
-import 'package:agrohub_app/constants.dart';
 import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/modules/http_register.dart';
+import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterLoteScreen extends StatefulWidget {
   const RegisterLoteScreen({super.key});
@@ -19,67 +17,180 @@ class RegisterLoteScreen extends StatefulWidget {
 }
 
 class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
-  final TextEditingController _instanciaIdController = TextEditingController();
   final TextEditingController _talhaoIdController = TextEditingController();
   final TextEditingController _operadorIdController = TextEditingController();
-  final TextEditingController _codigoRastreioController =
-      TextEditingController();
   final TextEditingController _produtoController = TextEditingController();
   final TextEditingController _quantidadeController = TextEditingController();
-  final TextEditingController _unidadeMedidaController =
-      TextEditingController();
-  final TextEditingController _imagemUrlController = TextEditingController();
+  final TextEditingController _unidadeMedidaController = TextEditingController();
 
   bool _ativo = true;
   bool _isPublished = false;
   bool _isLoading = false;
-  String? _instanciaIdError;
   String? _talhaoIdError;
   String? _operadorIdError;
   String? _produtoError;
   String? _quantidadeError;
   String? _unidadeMedidaError;
+  String? _imagemBase64;
+  String? _imagemNomeArquivo;
+  String? _talhaoSelecionadoNome;
+  String? _operadorSelecionadoNome;
 
   @override
   void dispose() {
-    _instanciaIdController.dispose();
     _talhaoIdController.dispose();
     _operadorIdController.dispose();
-    _codigoRastreioController.dispose();
     _produtoController.dispose();
     _quantidadeController.dispose();
     _unidadeMedidaController.dispose();
-    _imagemUrlController.dispose();
     super.dispose();
   }
 
-  Future<void> _validarFormulario() async {
-    final instanciaIdError = LoginValidators.validateRequiredText(
-        _instanciaIdController.text,
-        fieldName: 'o id da instância',
-        minLength: 3);
-    final talhaoIdError = LoginValidators.validateRequiredText(
-        _talhaoIdController.text,
-        fieldName: 'o id do talhão',
-        minLength: 3);
-    final operadorIdError = LoginValidators.validateRequiredText(
-        _operadorIdController.text,
-        fieldName: 'o id do operador',
-        minLength: 3);
-    final produtoError = LoginValidators.validateRequiredText(
-        _produtoController.text,
-        fieldName: 'o produto',
-        minLength: 2);
-    final quantidadeError = LoginValidators.validatePositiveNumber(
-        _quantidadeController.text,
-        fieldName: 'a quantidade');
-    final unidadeMedidaError = LoginValidators.validateRequiredText(
-        _unidadeMedidaController.text,
-        fieldName: 'a unidade de medida',
-        minLength: 1);
+  Future<void> _selecionarImagem() async {
+    final selection = await LocalImageService.pickImage();
+    if (selection == null) {
+      return;
+    }
+
+    if (!mounted) return;
 
     setState(() {
-      _instanciaIdError = instanciaIdError;
+      _imagemBase64 = selection.base64Data;
+      _imagemNomeArquivo = selection.fileName;
+    });
+  }
+
+  Future<void> _selecionarTalhao() async {
+    final talhoes = await DatabaseHelper.instance.listarTodos(
+      'talhoes',
+      orderBy: 'id_local DESC',
+    );
+
+    if (!mounted) return;
+
+    final selecionado = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.75,
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Selecionar talhão',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: talhoes.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final talhao = talhoes[index];
+                      return ListTile(
+                        title: Text(talhao['nome']?.toString() ?? '-'),
+                        subtitle: Text('ID ${talhao['id_local']} • Operador ${talhao['usuario_id'] ?? '-'}'),
+                        onTap: () => Navigator.pop(context, talhao),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selecionado == null || !mounted) return;
+
+    setState(() {
+      _talhaoIdController.text = selecionado['id_local']?.toString() ?? '';
+      _talhaoSelecionadoNome = selecionado['nome']?.toString();
+    });
+  }
+
+  Future<void> _selecionarOperador() async {
+    final operadores = await DatabaseHelper.instance.listarTodos(
+      'operadores',
+      orderBy: 'id_local DESC',
+    );
+
+    if (!mounted) return;
+
+    final selecionado = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.75,
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Selecionar operador',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: operadores.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final operador = operadores[index];
+                      return ListTile(
+                        title: Text(operador['nome_completo']?.toString() ?? '-'),
+                        subtitle: Text('ID ${operador['id_local']} • CPF ${operador['cpf'] ?? '-'}'),
+                        onTap: () => Navigator.pop(context, operador),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selecionado == null || !mounted) return;
+
+    setState(() {
+      _operadorIdController.text = selecionado['id_local']?.toString() ?? '';
+      _operadorSelecionadoNome = selecionado['nome_completo']?.toString();
+    });
+  }
+
+  Future<void> _validarFormulario() async {
+    final talhaoIdError = LoginValidators.validateRequiredText(
+      _talhaoIdController.text,
+      fieldName: 'o id do talhão',
+      minLength: 3,
+    );
+    final operadorIdError = LoginValidators.validateRequiredText(
+      _operadorIdController.text,
+      fieldName: 'o id do operador',
+      minLength: 3,
+    );
+    final produtoError = LoginValidators.validateRequiredText(
+      _produtoController.text,
+      fieldName: 'o produto',
+      minLength: 2,
+    );
+    final quantidadeError = LoginValidators.validatePositiveNumber(
+      _quantidadeController.text,
+      fieldName: 'a quantidade',
+    );
+    final unidadeMedidaError = LoginValidators.validateRequiredText(
+      _unidadeMedidaController.text,
+      fieldName: 'a unidade de medida',
+      minLength: 1,
+    );
+
+    setState(() {
       _talhaoIdError = talhaoIdError;
       _operadorIdError = operadorIdError;
       _produtoError = produtoError;
@@ -88,7 +199,6 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
     });
 
     final hasError = [
-      instanciaIdError,
       talhaoIdError,
       operadorIdError,
       produtoError,
@@ -103,41 +213,20 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
     });
 
     final quantidade = int.tryParse(_quantidadeController.text) ?? 0;
-    final status = _ativo ? 'ATIVO' : 'INATIVO';
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token') ?? '';
-
-    final Map<String, dynamic> dadosLocais = {
-      'instancia_id': _instanciaIdController.text,
+    final dadosLocais = {
       'usuario_id': _operadorIdController.text,
       'talhao_id': _talhaoIdController.text,
       'operador_id': _operadorIdController.text,
-      'codigo_rastreio': _codigoRastreioController.text,
       'produto': _produtoController.text,
       'quantidade': quantidade,
       'unidade_medida': _unidadeMedidaController.text,
-      'status': status,
-      'imagem_url': _imagemUrlController.text,
+      'status': _ativo ? 'ATIVO' : 'INATIVO',
+      'imagem_base64': _imagemBase64,
+      'imagem_nome_arquivo': _imagemNomeArquivo,
       'is_published': _isPublished ? 1 : 0,
-      'data_registro': DateTime.now().toIso8601String(),
-      'status_sincronizacao': 0,
     };
 
-    final idSalvo =
-        await DatabaseHelper.instance.inserirRegistro('lotes', dadosLocais);
-
-    final Map<String, dynamic> loteData = {
-      'produto': _produtoController.text,
-      'quantidade': quantidade,
-      'unidadeMedida': _unidadeMedidaController.text,
-      'status': status,
-      'imagemUrl': _imagemUrlController.text,
-      'usuarioId': _operadorIdController.text,
-      'talhoesId': _talhaoIdController.text,
-      'isPublished': _isPublished ? 1 : 0,
-    };
-
-    final result = await lotesRegister(loteData, token);
+    await DatabaseHelper.instance.inserirRegistro('lotes', dadosLocais);
 
     if (!mounted) return;
 
@@ -145,63 +234,46 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
       _isLoading = false;
     });
 
-    if (result.status >= 200 && result.status < 300) {
-      await DatabaseHelper.instance.marcarComoSincronizado('lotes', idSalvo);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Lote registrado e sincronizado com a nuvem!')),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Modo Offline: Salvo localmente. Erro na nuvem: ${result.message}')),
-      );
-      Navigator.pop(context);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Lote salvo no banco local.')),
+    );
+    Navigator.pop(context);
   }
 
-  Future<void> _editarImagemUrl() async {
-    final controller = TextEditingController(text: _imagemUrlController.text);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Imagem do lote'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: 'URL da imagem',
-            ),
+  Widget _imagePreview() {
+    final bytes = LocalImageService.decodeImage(_imagemBase64);
+    if (bytes == null) {
+      return Container(
+        width: double.infinity,
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: Text(
+            'Nenhuma imagem selecionada',
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Salvar'),
-            ),
-          ],
-        );
-      },
-    );
-    controller.dispose();
-
-    if (result != null) {
-      setState(() {
-        _imagemUrlController.text = result;
-      });
+        ),
+      );
     }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.memory(
+        bytes,
+        width: double.infinity,
+        height: 180,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BaseRegisterTemplate(
-      title: 'Registrar lotes',
+      title: 'Registrar Lotes',
       headerDrawerTitle: 'Administrador',
       visibleOptions: const {
         DrawerMenuOption.homeAdmin,
@@ -211,75 +283,13 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
         DrawerMenuOption.editarTalhao,
         DrawerMenuOption.registrarLote,
         DrawerMenuOption.editarLote,
+        DrawerMenuOption.marketplace,
         DrawerMenuOption.configuracoes,
         DrawerMenuOption.logout,
       },
       isLoading: _isLoading,
       onSubmit: _validarFormulario,
       fields: [
-        InputComponent(
-          emoji: Icons.account_tree,
-          borderRadius: 4,
-          width: double.infinity,
-          height: 45,
-          hint: 'Id_instância',
-          controll: _instanciaIdController,
-          errorText: _instanciaIdError,
-          eventChange: (_) {
-            setState(() {
-              _instanciaIdError = LoginValidators.validateRequiredText(
-                  _instanciaIdController.text,
-                  fieldName: 'o id da instância',
-                  minLength: 3);
-            });
-          },
-        ),
-        const SizedBox(height: 20),
-        InputComponent(
-          emoji: Icons.grass,
-          borderRadius: 4,
-          width: double.infinity,
-          height: 45,
-          hint: 'Id_talhão',
-          controll: _talhaoIdController,
-          errorText: _talhaoIdError,
-          eventChange: (_) {
-            setState(() {
-              _talhaoIdError = LoginValidators.validateRequiredText(
-                  _talhaoIdController.text,
-                  fieldName: 'o id do talhão',
-                  minLength: 3);
-            });
-          },
-        ),
-        const SizedBox(height: 20),
-        InputComponent(
-          emoji: Icons.manage_accounts,
-          borderRadius: 4,
-          width: double.infinity,
-          height: 45,
-          hint: 'Id_operador',
-          controll: _operadorIdController,
-          errorText: _operadorIdError,
-          eventChange: (_) {
-            setState(() {
-              _operadorIdError = LoginValidators.validateRequiredText(
-                  _operadorIdController.text,
-                  fieldName: 'o id do operador',
-                  minLength: 3);
-            });
-          },
-        ),
-        const SizedBox(height: 20),
-        InputComponent(
-          emoji: Icons.qr_code,
-          borderRadius: 4,
-          width: double.infinity,
-          height: 45,
-          hint: 'Código_rastreio',
-          controll: _codigoRastreioController,
-        ),
-        const SizedBox(height: 20),
         InputComponent(
           emoji: Icons.inventory_2,
           borderRadius: 4,
@@ -291,12 +301,75 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
           eventChange: (_) {
             setState(() {
               _produtoError = LoginValidators.validateRequiredText(
-                  _produtoController.text,
-                  fieldName: 'o produto',
-                  minLength: 2);
+                _produtoController.text,
+                fieldName: 'o produto',
+                minLength: 2,
+              );
             });
           },
         ),
+        const SizedBox(height: 20),
+        InputComponent(
+          emoji: Icons.grass,
+          borderRadius: 4,
+          width: double.infinity,
+          height: 45,
+          hint: 'Selecionar talhão',
+          controll: _talhaoIdController,
+          readOnly: true,
+          onTap: _selecionarTalhao,
+          errorText: _talhaoIdError,
+          eventChange: (_) {
+            setState(() {
+              _talhaoIdError = LoginValidators.validateRequiredText(
+                _talhaoIdController.text,
+                fieldName: 'o talhão',
+                minLength: 3,
+              );
+            });
+          },
+        ),
+        if (_talhaoSelecionadoNome != null) ...[
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Talhão selecionado: $_talhaoSelecionadoNome',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+        const SizedBox(height: 20),
+        InputComponent(
+          emoji: Icons.manage_accounts,
+          borderRadius: 4,
+          width: double.infinity,
+          height: 45,
+          hint: 'Selecionar operador',
+          controll: _operadorIdController,
+          readOnly: true,
+          onTap: _selecionarOperador,
+          errorText: _operadorIdError,
+          eventChange: (_) {
+            setState(() {
+              _operadorIdError = LoginValidators.validateRequiredText(
+                _operadorIdController.text,
+                fieldName: 'o operador',
+                minLength: 3,
+              );
+            });
+          },
+        ),
+        if (_operadorSelecionadoNome != null) ...[
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Operador selecionado: $_operadorSelecionadoNome',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         InputComponent(
           emoji: Icons.numbers,
@@ -313,8 +386,9 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
           eventChange: (_) {
             setState(() {
               _quantidadeError = LoginValidators.validatePositiveNumber(
-                  _quantidadeController.text,
-                  fieldName: 'a quantidade');
+                _quantidadeController.text,
+                fieldName: 'a quantidade',
+              );
             });
           },
         ),
@@ -324,15 +398,16 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Unidade_medida',
+          hint: 'Unidade de medida',
           controll: _unidadeMedidaController,
           errorText: _unidadeMedidaError,
           eventChange: (_) {
             setState(() {
               _unidadeMedidaError = LoginValidators.validateRequiredText(
-                  _unidadeMedidaController.text,
-                  fieldName: 'a unidade de medida',
-                  minLength: 1);
+                _unidadeMedidaController.text,
+                fieldName: 'a unidade de medida',
+                minLength: 1,
+              );
             });
           },
         ),
@@ -345,18 +420,39 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
             });
           },
         ),
+        const SizedBox(height: 16),
+        _imagePreview(),
         const SizedBox(height: 12),
         ButtonComponent(
-          label: 'Registrar imagem',
+          label: _imagemBase64 == null ? 'Selecionar imagem' : 'Trocar imagem',
           icon: Icons.image,
           width: double.infinity,
-          height: 36,
+          height: 45,
           fontSize: 15,
           borderRadius: 4,
           backgroundColor: const Color(0xFFE0E0E0),
           borderColor: const Color(0xFFE0E0E0),
-          onPressed: _editarImagemUrl,
+          onPressed: _selecionarImagem,
         ),
+        if (_imagemBase64 != null) ...[
+          const SizedBox(height: 8),
+          ButtonComponent(
+            label: 'Remover imagem',
+            icon: Icons.delete_outline,
+            width: double.infinity,
+            height: 45,
+            fontSize: 15,
+            borderRadius: 4,
+            backgroundColor: const Color(0xFFE0E0E0),
+            borderColor: const Color(0xFFE0E0E0),
+            onPressed: () {
+              setState(() {
+                _imagemBase64 = null;
+                _imagemNomeArquivo = null;
+              });
+            },
+          ),
+        ],
         const SizedBox(height: 8),
         CheckboxListTile(
           value: _isPublished,
@@ -371,7 +467,7 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
           title: const Text(
             'Adicionar no marketplace',
             style: TextStyle(
-              color: componentTextColor,
+              color: Colors.black,
               fontWeight: FontWeight.w700,
             ),
           ),
