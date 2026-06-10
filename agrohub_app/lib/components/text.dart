@@ -19,10 +19,11 @@ class TextComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Text(
       text,
       style: TextStyle(
-        color: color ?? componentTextColor,
+        color: color ?? colorScheme.onSurface,
         fontSize: fontSize ?? componentLabelFontSize,
         fontWeight: fontWeight ?? FontWeight.w700,
       ),

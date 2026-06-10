@@ -29,6 +29,7 @@ class BaseLoginTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
@@ -73,7 +74,7 @@ class BaseLoginTemplate extends StatelessWidget {
                         const SizedBox(height: 60),
                         TextComponent(
                           text: title,
-                          color: Colors.black,
+                          color: colorScheme.onSurface,
                           fontSize: 25,
                           fontWeight: FontWeight.bold,
                           aligment: TextAlign.left,

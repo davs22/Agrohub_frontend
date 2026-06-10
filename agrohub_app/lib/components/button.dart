@@ -45,6 +45,7 @@ class ButtonComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final VoidCallback? action = isDisabled ? null : onPressed;
     final Color resolvedTextColor = _determineTextColor();
 
@@ -84,12 +85,12 @@ class ButtonComponent extends StatelessWidget {
           return disabledBackgroundColor ?? const Color(0xFFBDBDBD);
         }
         if (type == ButtonType.elevated) {
-          return backgroundColor ?? componentPrimaryColor;
+          return backgroundColor ?? colorScheme.primary;
         }
         if (type == ButtonType.text) {
           return Colors.transparent;
         }
-        return componentSurfaceColor;
+        return backgroundColor ?? colorScheme.surface;
       }),
       foregroundColor: WidgetStatePropertyAll(resolvedTextColor),
       elevation: const WidgetStatePropertyAll(0),

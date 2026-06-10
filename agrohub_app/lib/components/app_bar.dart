@@ -19,20 +19,21 @@ class AppBarComponent extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
-      backgroundColor: componentPrimaryColor,
+      backgroundColor: colorScheme.primary,
       elevation: 0,
       toolbarHeight: componentAppBarHeight,
       centerTitle: centerTitle ?? false,
       automaticallyImplyLeading: automaticallyImplyLeading ?? true,
-      iconTheme: const IconThemeData(
-        color: componentTextColor,
+      iconTheme: IconThemeData(
+        color: colorScheme.onPrimary,
         size: 32,
       ),
       title: Text(
         title,
-        style: const TextStyle(
-          color: Color.fromARGB(255, 0, 0, 0),
+        style: TextStyle(
+          color: colorScheme.onPrimary,
           fontSize: 25,
           fontWeight: FontWeight.w800,
         ),

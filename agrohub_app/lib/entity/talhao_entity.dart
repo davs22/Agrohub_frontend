@@ -1,51 +1,102 @@
 class TalhaoEntity {
-  final String nomeTalhao;
-  final String tamanhoHectares;
+  final int? idLocal;
+  final String? talhaoIdNuvem;
+  final String usuarioId;
+  final String nome;
+  final double tamanhoHectares;
   final String culturaAtual;
   final String status;
-  final String? usuarioId;
+  final DateTime? dataRegistro;
+  final DateTime? dataAtualizacao;
+  final int statusSincronizacao;
 
-  TalhaoEntity({
-    required this.nomeTalhao,
+  const TalhaoEntity({
+    this.idLocal,
+    this.talhaoIdNuvem,
+    required this.usuarioId,
+    required this.nome,
     required this.tamanhoHectares,
     required this.culturaAtual,
     required this.status,
-    this.usuarioId,
+    this.dataRegistro,
+    this.dataAtualizacao,
+    this.statusSincronizacao = 1,
   });
 
-  factory TalhaoEntity.fromJson(Map<String, dynamic> json) {
+  factory TalhaoEntity.fromMap(Map<String, dynamic> json) {
     return TalhaoEntity(
-      nomeTalhao: json['nomeTalhao'] ?? '',
-      tamanhoHectares: json['tamanhoHectares'] ?? '',
-      culturaAtual: json['culturaAtual'] ?? '',
-      status: json['status'] ?? '',
-      usuarioId: json['usuarioId'],
+      idLocal: json['id_local'] as int?,
+      talhaoIdNuvem: json['talhao_id_nuvem']?.toString(),
+      usuarioId: json['usuario_id']?.toString() ?? '',
+      nome: json['nome']?.toString() ?? '',
+      tamanhoHectares: _toDouble(json['tamanho_hectares']),
+      culturaAtual: json['cultura_atual']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'ATIVO',
+      dataRegistro: _toDateTime(json['data_registro']),
+      dataAtualizacao: _toDateTime(json['data_atualizacao']),
+      statusSincronizacao: _toInt(json['status_sincronizacao']) ?? 1,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
-      'nomeTalhao': nomeTalhao,
-      'tamanhoHectares': tamanhoHectares,
-      'culturaAtual': culturaAtual,
+      'talhao_id_nuvem': talhaoIdNuvem,
+      'usuario_id': usuarioId,
+      'nome': nome,
+      'tamanho_hectares': tamanhoHectares,
+      'cultura_atual': culturaAtual,
       'status': status,
-      'usuarioId': usuarioId,
+      'data_registro': dataRegistro?.toIso8601String(),
+      'data_atualizacao': dataAtualizacao?.toIso8601String(),
+      'status_sincronizacao': statusSincronizacao,
     };
   }
 
   TalhaoEntity copyWith({
-    String? nomeTalhao,
-    String? tamanhoHectares,
+    int? idLocal,
+    String? talhaoIdNuvem,
+    String? usuarioId,
+    String? nome,
+    double? tamanhoHectares,
     String? culturaAtual,
     String? status,
-    String? usuarioId,
+    DateTime? dataRegistro,
+    DateTime? dataAtualizacao,
+    int? statusSincronizacao,
   }) {
     return TalhaoEntity(
-      nomeTalhao: nomeTalhao ?? this.nomeTalhao,
+      idLocal: idLocal ?? this.idLocal,
+      talhaoIdNuvem: talhaoIdNuvem ?? this.talhaoIdNuvem,
+      usuarioId: usuarioId ?? this.usuarioId,
+      nome: nome ?? this.nome,
       tamanhoHectares: tamanhoHectares ?? this.tamanhoHectares,
       culturaAtual: culturaAtual ?? this.culturaAtual,
       status: status ?? this.status,
-      usuarioId: usuarioId ?? this.usuarioId,
+      dataRegistro: dataRegistro ?? this.dataRegistro,
+      dataAtualizacao: dataAtualizacao ?? this.dataAtualizacao,
+      statusSincronizacao: statusSincronizacao ?? this.statusSincronizacao,
     );
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
+  }
+
+  static int? _toInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  static DateTime? _toDateTime(dynamic value) {
+    final text = value?.toString();
+    if (text == null || text.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(text);
   }
 }

@@ -1,12 +1,10 @@
-import 'package:agrohub_app/components/input.dart';
-import 'package:agrohub_app/components/drawer_menu.dart';
-import 'package:agrohub_app/utils/login_validators.dart';
-import 'package:agrohub_app/modules/http_register.dart';
 import 'package:agrohub_app/components/base_register_template.dart';
+import 'package:agrohub_app/components/drawer_menu.dart';
+import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterFazendaScreen extends StatefulWidget {
   const RegisterFazendaScreen({super.key});
@@ -52,9 +50,16 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
   }
 
   Future<void> _validarFormulario() async {
-    final nomeError = LoginValidators.validateRequiredText(_nomeController.text, fieldName: 'o nome da fazenda', minLength: 3);
+    final nomeError = LoginValidators.validateRequiredText(
+      _nomeController.text,
+      fieldName: 'o nome da fazenda',
+      minLength: 3,
+    );
     final documentoError = LoginValidators.validateCpfOrCnpj(_documentoController.text);
-    final hectaresError = LoginValidators.validatePositiveNumber(_hectaresController.text, fieldName: 'os hectares totais');
+    final hectaresError = LoginValidators.validatePositiveNumber(
+      _hectaresController.text,
+      fieldName: 'os hectares totais',
+    );
     final latitudeError = LoginValidators.validateLatitude(_latitudeController.text);
     final longitudeError = LoginValidators.validateLongitude(_longitudeController.text);
     final telefoneError = LoginValidators.validatePhone(_telefoneController.text);
@@ -75,9 +80,15 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
     });
 
     final hasError = [
-      nomeError, documentoError, hectaresError, latitudeError,
-      longitudeError, telefoneError,
-      emailError, senhaAdmError, senhaOperadorError,
+      nomeError,
+      documentoError,
+      hectaresError,
+      latitudeError,
+      longitudeError,
+      telefoneError,
+      emailError,
+      senhaAdmError,
+      senhaOperadorError,
     ].any((error) => error != null);
 
     if (hasError) return;
@@ -88,43 +99,24 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
 
     final documentoLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
     final telefoneLimpo = _telefoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final hectaresFormated = _hectaresController.text.replaceAll(',', '.');
-    final latitudeFormated = _latitudeController.text.replaceAll(',', '.');
-    final longitudeFormated = _longitudeController.text.replaceAll(',', '.');
+    final hectaresFormatado = _hectaresController.text.replaceAll(',', '.');
+    final latitudeFormatada = _latitudeController.text.replaceAll(',', '.');
+    final longitudeFormatada = _longitudeController.text.replaceAll(',', '.');
 
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token') ?? '';
-
-    final Map<String, dynamic> dadosLocais = {
-      "nome": _nomeController.text,
-      "documento": documentoLimpo,
-      "hectares": double.tryParse(hectaresFormated) ?? 0.0,
-      "latitude": latitudeFormated,
-      "longitude": longitudeFormated,
-      "telefone": telefoneLimpo,
-      "email": _emailController.text,
-      "senha_adm": _senhaAdmController.text,
-      "senha_operacao": _senhaOperadorController.text,
-      "status_sincronizacao": 0,
+    final dadosLocais = {
+      'nome': _nomeController.text,
+      'documento': documentoLimpo,
+      'hectares': double.tryParse(hectaresFormatado) ?? 0.0,
+      'latitude': latitudeFormatada,
+      'longitude': longitudeFormatada,
+      'telefone': telefoneLimpo,
+      'email': _emailController.text,
+      'senha_adm': _senhaAdmController.text,
+      'senha_operacao': _senhaOperadorController.text,
+      'status': 'ATIVO',
     };
 
-    final idSalvo = await DatabaseHelper.instance.inserirRegistro('fazendas', dadosLocais);
-
-    final Map<String, dynamic> userData = {
-      "nome": _nomeController.text,
-      "email": _emailController.text,
-      "telefone": telefoneLimpo,
-      "endereco": "0", 
-      "login": documentoLimpo, 
-      "senha": _senhaAdmController.text, 
-      "role": "FAZENDA", 
-      "status": "ATIVO", 
-      "hectaresTotais": hectaresFormated, 
-      "latitude": latitudeFormated, 
-      "longitude": longitudeFormated, 
-    };
-
-    final result = await registerRequest(userData, token);
+    await DatabaseHelper.instance.inserirRegistro('fazendas', dadosLocais);
 
     if (!mounted) return;
 
@@ -132,28 +124,20 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
       _isLoading = false;
     });
 
-    if (result.status >= 200 && result.status < 300) {
-      await DatabaseHelper.instance.marcarComoSincronizado('fazendas', idSalvo);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fazenda registrada e sincronizada com a nuvem!')),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Modo Offline: Salvo localmente. Erro na nuvem: ${result.message}')),
-      );
-      Navigator.pop(context);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Fazenda salva no banco local.')),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return BaseRegisterTemplate(
       title: 'Registro de Fazenda',
-      headerDrawerTitle: 'Comercio',
+      headerDrawerTitle: 'Comércio',
       visibleOptions: const {
         DrawerMenuOption.registrarComercio,
+        DrawerMenuOption.inicio,
         DrawerMenuOption.configuracoes,
       },
       isLoading: _isLoading,
@@ -167,11 +151,14 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
           hint: 'Nome da Fazenda',
           controll: _nomeController,
           typeInput: TextInputType.name,
-          inputFormatters: const [],
           errorText: _nomeError,
           eventChange: (_) {
             setState(() {
-              _nomeError = LoginValidators.validateRequiredText(_nomeController.text, fieldName: 'o nome da fazenda', minLength: 3);
+              _nomeError = LoginValidators.validateRequiredText(
+                _nomeController.text,
+                fieldName: 'o nome da fazenda',
+                minLength: 3,
+              );
             });
           },
         ),
@@ -210,7 +197,10 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
           errorText: _hectaresError,
           eventChange: (_) {
             setState(() {
-              _hectaresError = LoginValidators.validatePositiveNumber(_hectaresController.text, fieldName: 'os hectares totais');
+              _hectaresError = LoginValidators.validatePositiveNumber(
+                _hectaresController.text,
+                fieldName: 'os hectares totais',
+              );
             });
           },
         ),
@@ -283,7 +273,6 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
           showVisibilityToggle: false,
           controll: _emailController,
           typeInput: TextInputType.emailAddress,
-          inputFormatters: const [],
           errorText: _emailError,
           eventChange: (_) {
             setState(() {
@@ -297,13 +286,16 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
           borderRadius: 4,
           width: double.infinity,
           height: 45,
-          hint: 'Senha de administracao',
+          hint: 'Senha de administração',
           controll: _senhaAdmController,
           ephemeral: true,
           errorText: _senhaAdmError,
           eventChange: (_) {
             setState(() {
-              _senhaAdmError = LoginValidators.validatePassword(_senhaAdmController.text, minLength: 8);
+              _senhaAdmError = LoginValidators.validatePassword(
+                _senhaAdmController.text,
+                minLength: 8,
+              );
             });
           },
         ),
@@ -319,7 +311,10 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
           errorText: _senhaOperadorError,
           eventChange: (_) {
             setState(() {
-              _senhaOperadorError = LoginValidators.validatePassword(_senhaOperadorController.text, minLength: 8);
+              _senhaOperadorError = LoginValidators.validatePassword(
+                _senhaOperadorController.text,
+                minLength: 8,
+              );
             });
           },
         ),

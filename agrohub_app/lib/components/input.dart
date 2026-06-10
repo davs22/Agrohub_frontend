@@ -25,6 +25,8 @@ class InputComponent extends StatefulWidget {
     this.showVisibilityToggle,
     this.errorText,
     this.inputFormatters,
+    this.readOnly,
+    this.onTap,
   });
 
   final double? borderRadius;
@@ -45,16 +47,14 @@ class InputComponent extends StatefulWidget {
   final bool? showVisibilityToggle;
   final String? errorText;
   final List<TextInputFormatter>? inputFormatters;
+  final bool? readOnly;
+  final VoidCallback? onTap;
 
   @override
   State<InputComponent> createState() => _InputComponentState();
 }
 
 class _InputComponentState extends State<InputComponent> {
-  static final Color _defaultMutedColor = componentTextColor.withValues(
-    alpha: 0.5,
-  );
-
   late bool _obscureText;
 
   @override
@@ -65,6 +65,12 @@ class _InputComponentState extends State<InputComponent> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final surfaceColor = colorScheme.surface;
+    final textColor = colorScheme.onSurface;
+    final borderColor = widget.borderColor ?? colorScheme.outlineVariant;
+    final hintColor = widget.hintColor ?? textColor.withValues(alpha: 0.55);
+
     return SizedBox(
       width: widget.width ?? double.infinity,
       child: Column(
@@ -73,8 +79,8 @@ class _InputComponentState extends State<InputComponent> {
           if ((widget.label ?? '').isNotEmpty) ...[
             Text(
               widget.label!,
-              style: const TextStyle(
-                color: componentTextColor,
+              style: TextStyle(
+                color: textColor,
                 fontSize: componentLabelFontSize,
                 fontWeight: FontWeight.w700,
               ),
@@ -84,9 +90,9 @@ class _InputComponentState extends State<InputComponent> {
           Container(
             height: widget.height ?? componentInputHeight,
             decoration: BoxDecoration(
-              color: componentSurfaceColor,
+              color: surfaceColor,
               border: Border.all(
-                color: widget.borderColor ?? componentBorderColor,
+                color: borderColor,
               ),
               borderRadius: BorderRadius.circular(
                 widget.borderRadius ?? componentBorderRadius,
@@ -98,10 +104,11 @@ class _InputComponentState extends State<InputComponent> {
               obscureText: _obscureText,
               controller: widget.controll,
               keyboardType: widget.typeInput,
+              readOnly: widget.readOnly ?? false,
               textAlignVertical: TextAlignVertical.center,
               inputFormatters: widget.inputFormatters,
-              style: const TextStyle(
-                color: componentTextColor,
+              style: TextStyle(
+                color: textColor,
                 fontSize: componentFieldFontSize,
                 fontWeight: FontWeight.w700,
               ),
@@ -119,7 +126,7 @@ class _InputComponentState extends State<InputComponent> {
                         child: Icon(
                           widget.emoji,
                           size: 22,
-                          color: componentTextColor,
+                          color: textColor,
                         ),
                       ),
                 prefixIconConstraints: BoxConstraints(
@@ -133,7 +140,7 @@ class _InputComponentState extends State<InputComponent> {
                 ),
                 hintText: widget.hint ?? "",
                 hintStyle: TextStyle(
-                  color: widget.hintColor ?? _defaultMutedColor,
+                  color: hintColor,
                   fontSize: componentFieldFontSize,
                   fontWeight: FontWeight.w700,
                 ),
@@ -143,6 +150,7 @@ class _InputComponentState extends State<InputComponent> {
                     : "",
               ),
               onChanged: widget.eventChange,
+              onTap: widget.onTap,
             ),
           ),
           if ((widget.errorText ?? '').isNotEmpty) ...[
@@ -165,6 +173,7 @@ class _InputComponentState extends State<InputComponent> {
   }
 
   Widget? _buildSuffixIcon() {
+    final textColor = Theme.of(context).colorScheme.onSurface;
     if (widget.showVisibilityToggle ?? (widget.ephemeral ?? false)) {
       return IconButton(
         onPressed: () => setState(() => _obscureText = !_obscureText),
@@ -172,7 +181,7 @@ class _InputComponentState extends State<InputComponent> {
           _obscureText
               ? Icons.visibility_outlined
               : Icons.visibility_off_outlined,
-          color: componentTextColor,
+          color: textColor,
         ),
       );
     }
@@ -180,7 +189,7 @@ class _InputComponentState extends State<InputComponent> {
     if (widget.suffixIcon != null) {
       return Padding(
         padding: const EdgeInsets.only(right: 14),
-        child: Icon(widget.suffixIcon, color: componentTextColor),
+        child: Icon(widget.suffixIcon, color: textColor),
       );
     }
 

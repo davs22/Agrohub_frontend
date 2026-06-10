@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:math';
+
 import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
+import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/login/adm.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
   bool _codigoEnviado = false;
   int _segundosRestantes = 0;
   Timer? _codigoTimer;
+  String? _codigoGerado;
 
   @override
   void dispose() {
@@ -37,6 +39,17 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
     _senhaController.dispose();
     _codigoController.dispose();
     super.dispose();
+  }
+
+  Future<Map<String, dynamic>?> _buscarUsuario() async {
+    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final comercio = await DatabaseHelper.instance.buscarPorColuna('comercios', 'documento', loginLimpo);
+    if (comercio != null) return {'table': 'comercios', 'record': comercio};
+
+    final fazenda = await DatabaseHelper.instance.buscarPorColuna('fazendas', 'documento', loginLimpo);
+    if (fazenda != null) return {'table': 'fazendas', 'record': fazenda};
+
+    return null;
   }
 
   Future<void> _enviarCodigo() async {
@@ -48,49 +61,48 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
 
     if (cpfError != null) return;
 
-    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://agrohub.discloud.app/auth/send-code/$loginLimpo'),
-      );
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        _codigoTimer?.cancel();
-
-        setState(() {
-          _codigoEnviado = true;
-          _segundosRestantes = 50;
-        });
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Código enviado com sucesso. Verifique seu email.')),
-        );
-
-        _codigoTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          if (!mounted) {
-            timer.cancel();
-            return;
-          }
-          if (_segundosRestantes <= 1) {
-            timer.cancel();
-            setState(() { _segundosRestantes = 0; });
-            return;
-          }
-          setState(() { _segundosRestantes--; });
-        });
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao enviar código. Verifique o usuário e a internet.')),
-        );
-      }
-    } catch (e) {
+    final usuario = await _buscarUsuario();
+    if (usuario == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sem conexão com a internet.')),
+        const SnackBar(content: Text('Usuário não encontrado no banco local.')),
       );
+      return;
     }
+
+    final codigo = (Random().nextInt(900000) + 100000).toString();
+    _codigoGerado = codigo;
+    _codigoTimer?.cancel();
+
+    setState(() {
+      _codigoEnviado = true;
+      _segundosRestantes = 50;
+    });
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Código local gerado: $codigo')),
+    );
+
+    _codigoTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_segundosRestantes <= 1) {
+        timer.cancel();
+        setState(() {
+          _segundosRestantes = 0;
+        });
+        return;
+      }
+
+      setState(() {
+        _segundosRestantes--;
+      });
+    });
   }
 
   Future<void> _validarERedefinirSenha() async {
@@ -106,46 +118,44 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
 
     if (cpfError != null || senhaError != null || codigoError != null) return;
 
-    if (!_codigoEnviado) {
+    if (!_codigoEnviado || _codigoGerado == null || _codigoGerado != _codigoController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Envie o código de verificação antes de redefinir.')),
+        const SnackBar(content: Text('Código inválido. Gere um novo código local.')),
       );
       return;
     }
 
-    final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final codigo = _codigoController.text;
-    
-    try {
-      // 1. Método PUT e Parâmetros na URL (Path e Query)
-      final uri = Uri.parse('https://agrohub.discloud.app/auth/reset-password/$loginLimpo?code=$codigo');
-
-      final response = await http.put(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        // 2. Body contendo apenas a chave 'senha'
-        body: jsonEncode({
-          'senha': _senhaController.text,
-        }),
-      );
-
+    final usuario = await _buscarUsuario();
+    if (usuario == null) {
       if (!mounted) return;
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Senha redefinida com sucesso.')),
-        );
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginAdmScreen()));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Código inválido ou expirado.')),
-        );
-      }
-    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro de conexão ao redefinir a senha.')),
+        const SnackBar(content: Text('Usuário não encontrado no banco local.')),
       );
+      return;
     }
+
+    final table = usuario['table'] as String;
+    final record = usuario['record'] as Map<String, dynamic>;
+    final idLocal = record['id_local'] as int?;
+
+    if (idLocal == null) return;
+
+    final senhaKey = table == 'comercios' || table == 'fazendas' ? 'senha_adm' : 'senha';
+    await DatabaseHelper.instance.atualizarRegistro(
+      table,
+      {senhaKey: _senhaController.text},
+      idLocal,
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Senha redefinida com sucesso no banco local.')),
+    );
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginAdmScreen()),
+    );
   }
 
   bool get _podeRedefinirSenha {
@@ -204,11 +214,11 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           ],
                         ),
                         const SizedBox(height: 50),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Digite seu usuario',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -234,11 +244,11 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           },
                         ),
                         const SizedBox(height: 35),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Digite sua nova senha',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -249,7 +259,7 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           borderRadius: 20,
                           width: double.infinity,
                           height: 65,
-                          hint: '8 digitos',
+                          hint: '8 Dígitos',
                           ephemeral: true,
                           controll: _senhaController,
                           errorText: _senhaError,
@@ -260,11 +270,11 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           },
                         ),
                         const SizedBox(height: 35),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
-                            text: 'Codigo de verificacao',
-                            color: Colors.black,
+                            text: 'Código de verificação',
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -275,7 +285,7 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           borderRadius: 20,
                           width: double.infinity,
                           height: 65,
-                          hint: '6 digitos',
+                          hint: '6 Dígitos',
                           controll: _codigoController,
                           typeInput: TextInputType.number,
                           inputFormatters: [
@@ -295,9 +305,9 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           child: TextButton(
                             onPressed: _segundosRestantes > 0 ? null : _enviarCodigo,
                             child: Text(
-                              _segundosRestantes > 0 ? 'Aguarde ${_segundosRestantes}s' : 'Enviar codigo',
-                              style: const TextStyle(
-                                color: Colors.black,
+                              _segundosRestantes > 0 ? 'Aguarde ${_segundosRestantes}s' : 'Gerar código',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -325,3 +335,4 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
     );
   }
 }
+

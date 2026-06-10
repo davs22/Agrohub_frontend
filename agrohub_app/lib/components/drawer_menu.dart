@@ -1,11 +1,7 @@
+import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/constants.dart';
-import 'package:agrohub_app/pages/edit/operador.dart';
-import 'package:agrohub_app/pages/registro/operador.dart';
-import 'package:agrohub_app/pages/view/operador.dart';
-import 'package:flutter/material.dart';
-
-import 'package:agrohub_app/components/button.dart'; // <- Import do teu botão adicionado
 import 'package:agrohub_app/pages/home_adm_screen.dart';
+import 'package:agrohub_app/pages/home_operador_screen.dart';
 import 'package:agrohub_app/pages/login/adm.dart';
 import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/pages/login/operador.dart';
@@ -13,11 +9,28 @@ import 'package:agrohub_app/pages/edit/pass_adm.dart';
 import 'package:agrohub_app/pages/edit/pass_operador.dart';
 import 'package:agrohub_app/pages/registro/comercio.dart';
 import 'package:agrohub_app/pages/registro/fazenda.dart';
+import 'package:agrohub_app/pages/registro/lote.dart';
+import 'package:agrohub_app/pages/registro/operador.dart';
+import 'package:agrohub_app/pages/registro/talhao.dart';
+import 'package:agrohub_app/pages/view/carrinho.dart';
+import 'package:agrohub_app/pages/view/configuracoes.dart';
+import 'package:agrohub_app/pages/view/configuracoes_adm.dart';
+import 'package:agrohub_app/pages/view/configuracoes_operador.dart';
+import 'package:agrohub_app/pages/view/lotes.dart';
+import 'package:agrohub_app/pages/view/marketplace.dart';
+import 'package:agrohub_app/pages/view/operador.dart';
+import 'package:agrohub_app/pages/view/perfil_operador.dart';
+import 'package:agrohub_app/pages/view/talhoes.dart';
+import 'package:agrohub_app/pages/view/talhoes_operador.dart';
+import 'package:agrohub_app/services/session_service.dart';
+import 'package:flutter/material.dart';
 
 enum DrawerMenuOption {
   operador,
+  inicio,
   administrador,
   homeAdmin,
+  homeOperador,
   listaOperadores,
   novaSenhaAdmin,
   novaSenhaOperador,
@@ -25,7 +38,17 @@ enum DrawerMenuOption {
   registrarComercio,
   registrarOperador,
   editarOperador,
+  registrarTalhao,
+  editarTalhao,
+  registrarLote,
+  editarLote,
+  talhoes,
+  carrinho,
+  perfilOperador,
+  marketplace,
   configuracoes,
+  configuracoesAdm,
+  configuracoesOperador,
   logout,
 }
 
@@ -70,13 +93,12 @@ class DrawerMenuComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedItems = items ?? _buildDefaultItems(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
-      backgroundColor: backgroundColor ?? componentSurfaceColor,
-      // Usamos Column para poder colocar itens no rodapé
+      backgroundColor: backgroundColor ?? colorScheme.surface,
       child: Column(
         children: [
-          // Expanded empurra o botão lá para o fundo
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -110,7 +132,6 @@ class DrawerMenuComponent extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Renderiza os itens do menu normal
                 ...resolvedItems.map(
                   (item) => ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -119,12 +140,12 @@ class DrawerMenuComponent extends StatelessWidget {
                     ),
                     leading: Icon(
                       item.icon,
-                      color: item.iconColor ?? componentTextColor,
+                      color: item.iconColor ?? colorScheme.onSurface,
                     ),
                     title: Text(
                       item.title,
                       style: TextStyle(
-                        color: item.textColor ?? componentTextColor,
+                        color: item.textColor ?? colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -134,25 +155,26 @@ class DrawerMenuComponent extends StatelessWidget {
               ],
             ),
           ),
-
-          // O teu Botão de Sair fixo no rodapé
-          const Divider(height: 1, color: Colors.grey), // Linha de separação
+          const Divider(height: 1, color: Colors.grey),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(40.0),
               child: ButtonComponent(
-                label: 'Sair', // Fica melhor em Português
+                label: 'Sair',
                 borderRadius: 10,
-                width: 200, // Estica para ocupar toda a largura
+                width: 200,
                 height: 50,
                 onPressed: () {
-                  // Navegação com segurança (limpa histórico)
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const LoginComercioScreen()),
-                    (Route<dynamic> route) => false,
-                  );
+                  SessionService.clearSession().then((_) {
+                    if (!context.mounted) return;
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LoginComercioScreen(),
+                      ),
+                      (Route<dynamic> route) => false,
+                    );
+                  });
                 },
               ),
             ),
@@ -167,7 +189,6 @@ class DrawerMenuComponent extends StatelessWidget {
 
     return options
         .where((option) => !hiddenOptions.contains(option))
-        // Filtro de segurança: remove o logout da lista para não duplicar com o botão do rodapé
         .where((option) => option != DrawerMenuOption.logout)
         .map((option) => _buildItemFromOption(context, option))
         .toList();
@@ -182,120 +203,165 @@ class DrawerMenuComponent extends StatelessWidget {
         return DrawerItem(
           title: 'Operador',
           icon: Icons.manage_accounts,
-          onTap: () {
-            _navigateTo(context, const LoginOperadorScreen());
-            debugPrint('Navegar para Operador');
-          },
+          onTap: () => _navigateTo(context, const LoginOperadorScreen()),
         );
-
+      case DrawerMenuOption.inicio:
+        return DrawerItem(
+          title: 'Tela inicial',
+          icon: Icons.manage_accounts,
+          onTap: () => _navigateTo(context, const LoginComercioScreen()),
+        );
       case DrawerMenuOption.administrador:
         return DrawerItem(
           title: 'Administrador',
           icon: Icons.admin_panel_settings,
-          onTap: () {
-            _navigateTo(context, const LoginAdmScreen());
-            debugPrint('Navegar para Administrador');
-          },
+          onTap: () => _navigateTo(context, const LoginAdmScreen()),
         );
       case DrawerMenuOption.homeAdmin:
         return DrawerItem(
           title: 'Home Admin',
           icon: Icons.space_dashboard,
-          onTap: () {
-            _navigateTo(context, const HomeAdmScreen());
-            debugPrint('Navegar para Home Admin');
-          },
+          onTap: () => _navigateTo(context, const HomeAdmScreen()),
+        );
+      case DrawerMenuOption.homeOperador:
+        return DrawerItem(
+          title: 'Home Operador',
+          icon: Icons.home,
+          onTap: () => _navigateTo(context, const HomeOperadorScreen()),
         );
       case DrawerMenuOption.listaOperadores:
         return DrawerItem(
-          title: 'Lista de operadores',
+          title: 'Operadores',
           icon: Icons.list,
-          onTap: () {
-            _navigateTo(context, const ViewOperadorScreen());
-          },
+          onTap: () => _navigateTo(context, const ViewOperadorScreen()),
         );
       case DrawerMenuOption.novaSenhaAdmin:
         return DrawerItem(
           title: 'Esqueci a senha',
           icon: Icons.lock_reset,
-          onTap: () {
-            _navigateTo(context, const NewPassAdmScreen());
-            debugPrint('Navegar para nova senha admin');
-          },
+          onTap: () => _navigateTo(context, const NewPassAdmScreen()),
         );
       case DrawerMenuOption.novaSenhaOperador:
         return DrawerItem(
           title: 'Esqueci a senha',
           icon: Icons.password,
-          onTap: () {
-            _navigateTo(context, const NewPassOperadorScreen());
-            debugPrint('Navegar para nova senha operador');
-          },
+          onTap: () => _navigateTo(context, const NewPassOperadorScreen()),
         );
       case DrawerMenuOption.registrarFazenda:
         return DrawerItem(
           title: 'Registrar fazenda',
           icon: Icons.agriculture,
-          onTap: () {
-            _navigateTo(context, const RegisterFazendaScreen());
-          },
+          onTap: () => _navigateTo(context, const RegisterFazendaScreen()),
         );
       case DrawerMenuOption.registrarComercio:
         return DrawerItem(
-          title: 'Registrar comércio',
+          title: 'Registrar comercio',
           icon: Icons.store,
-          onTap: () {
-            _navigateTo(context, const RegisterComercioScreen());
-          },
+          onTap: () => _navigateTo(context, const RegisterComercioScreen()),
         );
       case DrawerMenuOption.registrarOperador:
         return DrawerItem(
           title: 'Registrar operador',
           icon: Icons.person_add,
-          onTap: () {
-            _navigateTo(context, const RegisterOperadorScreen());
-          },
+          onTap: () => _navigateTo(context, const RegisterOperadorScreen()),
         );
-      /*case DrawerMenuOption.editarOperador:
+      case DrawerMenuOption.editarOperador:
         return DrawerItem(
           title: 'Editar operador',
           icon: Icons.edit,
-          onTap: () {
-            _navigateTo(context, const EditOperadorScreen());
-          },
-        );*/
+          onTap: () => _navigateTo(context, const ViewOperadorScreen()),
+        );
+      case DrawerMenuOption.registrarTalhao:
+        return DrawerItem(
+          title: 'Registrar talhao',
+          icon: Icons.grass,
+          onTap: () => _navigateTo(context, const RegisterTalhaoScreen()),
+        );
+      case DrawerMenuOption.editarTalhao:
+        return DrawerItem(
+          title: 'Talhoes',
+          icon: Icons.edit_location_alt,
+          onTap: () => _navigateTo(context, const ViewTalhaoScreen()),
+        );
+      case DrawerMenuOption.registrarLote:
+        return DrawerItem(
+          title: 'Registrar lote',
+          icon: Icons.inventory_2,
+          onTap: () => _navigateTo(context, const RegisterLoteScreen()),
+        );
+      case DrawerMenuOption.editarLote:
+        return DrawerItem(
+          title: 'Lotes',
+          icon: Icons.edit_note,
+          onTap: () => _navigateTo(context, const ViewLoteScreen()),
+        );
+      case DrawerMenuOption.talhoes:
+        return DrawerItem(
+          title: 'Talhoes',
+          icon: Icons.grass,
+          onTap: () => _navigateTo(context, const ViewTalhaoOperadorScreen()),
+        );
+      case DrawerMenuOption.carrinho:
+        return DrawerItem(
+          title: 'Carrinho',
+          icon: Icons.shopping_cart,
+          onTap: () => _navigateTo(context, const CarrinhoScreen()),
+        );
+      case DrawerMenuOption.perfilOperador:
+        return DrawerItem(
+          title: 'Perfil do operador',
+          icon: Icons.person,
+          onTap: () => _navigateTo(context, const PerfilOperadorScreen()),
+        );
+      case DrawerMenuOption.marketplace:
+        return DrawerItem(
+          title: 'Marketplace',
+          icon: Icons.storefront,
+          onTap: () => _navigateTo(context, const MarketplaceScreen()),
+        );
       case DrawerMenuOption.configuracoes:
         return DrawerItem(
-          title: 'Configurações',
+          title: 'Configuracoes',
           icon: Icons.settings,
-          onTap: () {
-            Navigator.pop(context);
-            debugPrint('Navegar para Configurações');
-          },
+          onTap: () => _navigateTo(context, const ConfiguracoesScreen()),
+        );
+        case DrawerMenuOption.configuracoesAdm:
+        return DrawerItem(
+          title: 'Configuracoes',
+          icon: Icons.settings,
+          onTap: () => _navigateTo(context, const ConfiguracoesAdmScreen()),
+        );
+        case DrawerMenuOption.configuracoesOperador:
+        return DrawerItem(
+          title: 'Configuracoes',
+          icon: Icons.settings,
+          onTap: () => _navigateTo(context, const ConfiguracoesOperadorScreen()),
         );
       case DrawerMenuOption.logout:
         return DrawerItem(
           title: 'Sair',
           icon: Icons.logout,
           onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
-              (Route<dynamic> route) => false,
-            );
+            SessionService.clearSession().then((_) {
+              if (!context.mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
+                (Route<dynamic> route) => false,
+              );
+            });
           },
         );
-      case DrawerMenuOption.editarOperador:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
   }
 
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.pop(context);
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => screen),
+      (route) => route.isFirst,
     );
   }
+
 }
