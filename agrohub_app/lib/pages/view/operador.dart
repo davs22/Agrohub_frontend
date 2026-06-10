@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/operador.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class ViewOperadorScreen extends StatefulWidget {
@@ -110,7 +111,8 @@ class _ViewOperadorScreenState extends State<ViewOperadorScreen> {
   Widget build(BuildContext context) {
     final operadores = _filteredOperadores;
 
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -232,6 +234,7 @@ class _ViewOperadorScreenState extends State<ViewOperadorScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

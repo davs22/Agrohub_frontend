@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/lote.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class ViewLoteScreen extends StatefulWidget {
@@ -156,7 +157,8 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
   Widget build(BuildContext context) {
     final lotes = _filteredLotes;
 
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -279,6 +281,7 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

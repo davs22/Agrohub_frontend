@@ -4,8 +4,8 @@ import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -168,10 +168,7 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Operador atualizado no banco local.')),
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
-    );
+    await FlowNavigation.goToRoot(context);
   }
 
   Future<void> _excluirOperador() async {
@@ -214,42 +211,41 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Operador excluido do banco local.')),
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
-    );
+    await FlowNavigation.goToRoot(context);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_accessChecked && !_canManage) {
-      return Scaffold(
-        appBar: AppBarComponent(
-          title: 'AgroHub',
-          automaticallyImplyLeading: false,
-          actions: [
-            Builder(
-              builder: (context) => IconButton(
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-                icon: const Icon(Icons.menu),
+      return FlowBackGuard(
+        child: Scaffold(
+          appBar: AppBarComponent(
+            title: 'AgroHub',
+            automaticallyImplyLeading: false,
+            actions: [
+              Builder(
+                builder: (context) => IconButton(
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                  icon: const Icon(Icons.menu),
+                ),
               ),
-            ),
-          ],
-        ),
-        endDrawer: const DrawerMenuComponent(
-          headerTitle: 'Administrador',
-          visibleOptions: {
-            DrawerMenuOption.configuracoes,
-            DrawerMenuOption.logout,
-          },
-        ),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Apenas o administrador pode editar operadores.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ],
+          ),
+          endDrawer: const DrawerMenuComponent(
+            headerTitle: 'Administrador',
+            visibleOptions: {
+              DrawerMenuOption.configuracoes,
+              DrawerMenuOption.logout,
+            },
+          ),
+          body: const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Apenas o administrador pode editar operadores.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ),

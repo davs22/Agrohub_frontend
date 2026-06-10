@@ -1,7 +1,9 @@
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/home_operador_screen.dart';
 import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/pages/login/operador.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class AppEntryGate extends StatelessWidget {
@@ -22,11 +24,17 @@ class AppEntryGate extends StatelessWidget {
 
         final session = snapshot.data;
         if (session != null) {
-          if (session.role == 'OPERADOR') {
+          if (session.flowStage == FlowNavigation.adminHomeStage) {
+            return const HomeAdmScreen();
+          }
+
+          if (session.flowStage == FlowNavigation.operatorHomeStage || session.role == 'OPERADOR') {
             return const HomeOperadorScreen();
           }
 
-          if (session.role == 'COMERCIO' || session.role == 'FAZENDA') {
+          if (session.flowStage == FlowNavigation.operatorLoginStage ||
+              session.role == 'COMERCIO' ||
+              session.role == 'FAZENDA') {
             return const LoginOperadorScreen();
           }
         }

@@ -7,6 +7,7 @@ import 'package:agrohub_app/pages/view/carrinho.dart';
 import 'package:agrohub_app/services/local_cart_service.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -155,7 +156,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -298,6 +300,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             );
           },
         ),
+      ),
       ),
     );
   }

@@ -2,8 +2,8 @@ import 'package:agrohub_app/components/base_register_template.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,10 +121,7 @@ class _RegisterOperadorScreenState extends State<RegisterOperadorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Operador salvo no banco local.')),
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
-    );
+    await FlowNavigation.goToRoot(context);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/talhao.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class ViewTalhaoScreen extends StatefulWidget {
@@ -117,7 +118,8 @@ class _ViewTalhaoScreenState extends State<ViewTalhaoScreen> {
   Widget build(BuildContext context) {
     final talhoes = _filteredTalhoes;
 
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -239,6 +241,7 @@ class _ViewTalhaoScreenState extends State<ViewTalhaoScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

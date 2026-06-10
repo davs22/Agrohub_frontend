@@ -6,6 +6,7 @@ import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/operador.dart';
 import 'package:agrohub_app/pages/edit/pass_operador.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class PerfilOperadorScreen extends StatefulWidget {
@@ -78,7 +79,8 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -181,6 +183,7 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
             );
           },
         ),
+      ),
       ),
     );
   }

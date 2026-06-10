@@ -7,7 +7,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/pages/login/operador.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -154,10 +154,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
       const SnackBar(content: Text('Senha redefinida com sucesso no banco local.')),
     );
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
-    );
+    await FlowNavigation.goToRoot(context);
   }
 
   bool get _podeRedefinirSenha {
@@ -175,7 +172,8 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -347,6 +345,7 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
             );
           },
         ),
+      ),
       ),
     );
   }

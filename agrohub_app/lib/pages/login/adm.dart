@@ -7,6 +7,7 @@ import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/services/local_auth_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -101,6 +102,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
       role: result.role,
       login: loginLimpo,
       tableName: result.tableName,
+      flowStage: FlowNavigation.adminHomeStage,
       localId: result.record['id_local'] as int?,
       displayName: result.record['nome']?.toString(),
       documento: result.record['documento']?.toString(),
@@ -108,9 +110,10 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+      (route) => false,
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/services/theme_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 
 class ConfiguracoesOperadorScreen extends StatefulWidget {
@@ -24,7 +25,8 @@ class _ConfiguracoesOperadorScreenState extends State<ConfiguracoesOperadorScree
   Widget build(BuildContext context) {
     final isDark = _themeMode == ThemeMode.dark;
 
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -94,6 +96,7 @@ class _ConfiguracoesOperadorScreenState extends State<ConfiguracoesOperadorScree
             ),
           ],
         ),
+      ),
       ),
     );
   }

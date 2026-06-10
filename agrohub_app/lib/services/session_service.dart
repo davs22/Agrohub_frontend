@@ -4,6 +4,7 @@ class SessionData {
   final String role;
   final String login;
   final String tableName;
+  final String? flowStage;
   final int? localId;
   final String? displayName;
   final String? documento;
@@ -13,6 +14,7 @@ class SessionData {
     required this.role,
     required this.login,
     required this.tableName,
+    this.flowStage,
     this.localId,
     this.displayName,
     this.documento,
@@ -25,6 +27,7 @@ class SessionService {
   static const String _roleKey = 'role';
   static const String _loginKey = 'login';
   static const String _tableNameKey = 'table_name';
+  static const String _flowStageKey = 'flow_stage';
   static const String _localIdKey = 'local_id';
   static const String _displayNameKey = 'display_name';
   static const String _documentoKey = 'documento';
@@ -34,6 +37,7 @@ class SessionService {
     required String role,
     required String login,
     required String tableName,
+    String? flowStage,
     int? localId,
     String? displayName,
     String? documento,
@@ -44,6 +48,11 @@ class SessionService {
     await prefs.setString(_roleKey, role);
     await prefs.setString(_loginKey, login);
     await prefs.setString(_tableNameKey, tableName);
+    if (flowStage != null) {
+      await prefs.setString(_flowStageKey, flowStage);
+    } else {
+      await prefs.remove(_flowStageKey);
+    }
 
     if (localId != null) {
       await prefs.setInt(_localIdKey, localId);
@@ -76,6 +85,7 @@ class SessionService {
     final role = prefs.getString(_roleKey);
     final login = prefs.getString(_loginKey);
     final tableName = prefs.getString(_tableNameKey);
+    final flowStage = prefs.getString(_flowStageKey);
 
     if (role == null || login == null || tableName == null) {
       return null;
@@ -85,6 +95,7 @@ class SessionService {
       role: role,
       login: login,
       tableName: tableName,
+      flowStage: flowStage,
       localId: prefs.getInt(_localIdKey),
       displayName: prefs.getString(_displayNameKey),
       documento: prefs.getString(_documentoKey),
@@ -98,6 +109,7 @@ class SessionService {
     await prefs.remove(_roleKey);
     await prefs.remove(_loginKey);
     await prefs.remove(_tableNameKey);
+    await prefs.remove(_flowStageKey);
     await prefs.remove(_localIdKey);
     await prefs.remove(_displayNameKey);
     await prefs.remove(_documentoKey);

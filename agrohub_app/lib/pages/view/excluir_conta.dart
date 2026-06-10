@@ -9,6 +9,7 @@ import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/services/session_service.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -184,7 +185,8 @@ class _ExcluirContaScreenState extends State<ExcluirContaScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
+    return FlowBackGuard(
+      child: Scaffold(
       appBar: AppBarComponent(
         title: 'AgroHub',
         automaticallyImplyLeading: false,
@@ -356,6 +358,7 @@ class _ExcluirContaScreenState extends State<ExcluirContaScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

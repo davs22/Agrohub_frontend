@@ -8,6 +8,7 @@ import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/services/local_auth_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -102,6 +103,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       role: result.role,
       login: loginLimpo,
       tableName: result.tableName,
+      flowStage: FlowNavigation.operatorHomeStage,
       localId: result.record['id_local'] as int?,
       displayName: result.record['nome_completo']?.toString(),
       documento: result.record['cpf']?.toString(),
@@ -109,9 +111,10 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const HomeOperadorScreen()),
+      (route) => false,
     );
   }
 

@@ -3,7 +3,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/status_selector.dart';
 import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart';
+import 'package:agrohub_app/utils/flow_navigation.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -99,10 +99,7 @@ class _RegisterTalhaoScreenState extends State<RegisterTalhaoScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Talhão salvo no banco local.')),
     );
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
-    );
+    await FlowNavigation.goToRoot(context);
   }
 
   Future<void> _selecionarOperador() async {
