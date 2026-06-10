@@ -3,6 +3,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/home_adm_screen.dart';
+import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/services/local_auth_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
@@ -23,6 +24,35 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
   String? _documentoError;
   String? _senhaError;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureCompanySession();
+  }
+
+  Future<void> _ensureCompanySession() async {
+    final session = await SessionService.loadSession();
+    final isCompany = session != null && (session.role == 'COMERCIO' || session.role == 'FAZENDA');
+    if (!mounted || isCompany) {
+      return;
+    }
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<bool> _handleBack() async {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
+      (route) => false,
+    );
+    return false;
+  }
 
   @override
   void dispose() {
@@ -86,66 +116,75 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLoginTemplate(
-      title: 'Administrador',
-      svgPath: 'lib/interface_icons/administrador.svg',
-      headerDrawerTitle: 'Acesso Gestão',
-      visibleOptions: const {
-        DrawerMenuOption.novaSenhaAdmin,
-        DrawerMenuOption.operador,
-        DrawerMenuOption.configuracoes,
-        DrawerMenuOption.logout,
+    final colorScheme = Theme.of(context).colorScheme;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _handleBack();
+        }
       },
-      isLoading: _isLoading,
-      onSubmit: _validarEEntrar,
-      fields: [
-        InputComponent(
-          emoji: Icons.badge,
-          borderRadius: 20,
-          width: double.infinity,
-          height: 65,
-          hint: 'CNPJ/CPF do Negócio',
-          controll: _documentoController,
-          typeInput: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            CpfOrCnpjInputFormatter(),
-          ],
-          errorText: _documentoError,
-          eventChange: (_) {
-            setState(() {
-              _documentoError = LoginValidators.validateCpfOrCnpj(_documentoController.text);
-            });
-          },
-        ),
-        const SizedBox(height: 12),
-        const TextComponent(
-          text: 'Senha',
-          color: Colors.black,
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
-          aligment: TextAlign.left,
-        ),
-        const SizedBox(height: 12),
-        InputComponent(
-          emoji: Icons.lock,
-          borderRadius: 20,
-          width: double.infinity,
-          height: 65,
-          hint: '8 Dígitos',
-          hintColor: Colors.black.withValues(alpha: 0.5),
-          ephemeral: true,
-          controll: _senhaController,
-          errorText: _senhaError,
-          eventChange: (_) {
-            if (_senhaError != null) {
+      child: BaseLoginTemplate(
+        title: 'Administrador',
+        svgPath: 'lib/interface_icons/administrador.svg',
+        headerDrawerTitle: 'Acesso Gestão',
+        visibleOptions: const {
+          DrawerMenuOption.novaSenhaAdmin,
+          DrawerMenuOption.operador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+        isLoading: _isLoading,
+        onSubmit: _validarEEntrar,
+        fields: [
+          InputComponent(
+            emoji: Icons.badge,
+            borderRadius: 20,
+            width: double.infinity,
+            height: 65,
+            hint: 'CNPJ/CPF do Negócio',
+            controll: _documentoController,
+            typeInput: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              CpfOrCnpjInputFormatter(),
+            ],
+            errorText: _documentoError,
+            eventChange: (_) {
               setState(() {
-                _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+                _documentoError = LoginValidators.validateCpfOrCnpj(_documentoController.text);
               });
-            }
-          },
-        ),
-      ],
+            },
+          ),
+          const SizedBox(height: 12),
+          TextComponent(
+            text: 'Senha',
+            color: colorScheme.onSurface,
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            aligment: TextAlign.left,
+          ),
+          const SizedBox(height: 12),
+          InputComponent(
+            emoji: Icons.lock,
+            borderRadius: 20,
+            width: double.infinity,
+            height: 65,
+            hint: '8 Dígitos',
+            hintColor: colorScheme.onSurface.withValues(alpha: 0.55),
+            ephemeral: true,
+            controll: _senhaController,
+            errorText: _senhaError,
+            eventChange: (_) {
+              if (_senhaError != null) {
+                setState(() {
+                  _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+                });
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }

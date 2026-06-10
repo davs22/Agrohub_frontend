@@ -27,30 +27,31 @@ class PopupComponent {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final colorScheme = Theme.of(context).colorScheme;
         return AlertDialog(
-          backgroundColor: componentSurfaceColor,
+          backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(componentBorderRadius),
           ),
           title: Text(
             title,
-            style: const TextStyle(
-              color: componentTextColor,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           content: Text(
             content,
-            style: const TextStyle(
-              color: componentTextColor,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
           actions: <Widget>[
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: componentTextColor),
+              style: TextButton.styleFrom(foregroundColor: colorScheme.onSurface),
               onPressed: () {
                 Navigator.of(context).pop();
                 onClick?.call();
@@ -78,15 +79,16 @@ class PopupComponent {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final colorScheme = Theme.of(context).colorScheme;
         return AlertDialog(
-          backgroundColor: componentSurfaceColor,
+          backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(componentBorderRadius),
           ),
           title: Text(
             title,
-            style: const TextStyle(
-              color: componentTextColor,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -97,8 +99,8 @@ class PopupComponent {
             children: <Widget>[
               Text(
                 content,
-                style: const TextStyle(
-                  color: componentTextColor,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -106,18 +108,18 @@ class PopupComponent {
               const SizedBox(height: 12),
               TextField(
                 controller: controll,
-                style: const TextStyle(
-                  color: componentTextColor,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
                   fontSize: componentFieldFontSize,
                   fontWeight: FontWeight.w700,
                 ),
                 decoration: InputDecoration(
                   labelText: label ?? 'Digite aqui.',
                   hintText: hint ?? '',
-                  labelStyle: TextStyle(color: color ?? componentAccentColor),
+                  labelStyle: TextStyle(color: color ?? colorScheme.primary),
                   border: const OutlineInputBorder(),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: color ?? componentAccentColor),
+                    borderSide: BorderSide(color: color ?? colorScheme.primary),
                   ),
                 ),
               ),

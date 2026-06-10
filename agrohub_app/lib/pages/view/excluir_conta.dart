@@ -297,7 +297,7 @@ class _ExcluirContaScreenState extends State<ExcluirContaScreen> {
                     borderRadius: 8,
                     backgroundColor: colorScheme.primary,
                     borderColor: colorScheme.primary,
-                    textColor: Colors.black,
+                    textColor: Theme.of(context).colorScheme.onSurface,
                     isDisabled: _segundosRestantes > 0,
                     onPressed: _solicitarCodigo,
                   ),
@@ -360,3 +360,4 @@ class _ExcluirContaScreenState extends State<ExcluirContaScreen> {
     );
   }
 }
+

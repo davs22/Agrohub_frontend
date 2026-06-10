@@ -1,10 +1,16 @@
 import 'package:agrohub_app/pages/app_entry_gate.dart';
 import 'package:agrohub_app/services/theme_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    sqflite.databaseFactory = databaseFactoryFfiWeb;
+  }
   await ThemeService.init();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -23,7 +29,7 @@ class MyApp extends StatelessWidget {
       brightness: Brightness.light,
     );
 
-    return ThemeData(
+      return ThemeData(
       useMaterial3: true,
       colorScheme: scheme.copyWith(
         primary: seedColor,

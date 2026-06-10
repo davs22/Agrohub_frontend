@@ -258,7 +258,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                                             onPressed: idLocal == null ? null : () => _openDetails(idLocal),
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: const Color(0xFF24961F),
-                                              foregroundColor: Colors.black,
+                                              foregroundColor: Theme.of(context).colorScheme.onSurface,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(4),
                                               ),
@@ -283,3 +283,4 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 }
+

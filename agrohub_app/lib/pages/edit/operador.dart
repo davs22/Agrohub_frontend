@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +168,10 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Operador atualizado no banco local.')),
     );
-    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+    );
   }
 
   Future<void> _excluirOperador() async {
@@ -210,7 +214,10 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Operador excluido do banco local.')),
     );
-    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+    );
   }
 
   @override
@@ -386,20 +393,20 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
           height: 45,
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.black),
+              Icon(Icons.check_circle, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 12),
               Text(
                 _ativo ? 'Ativo' : 'Inativo',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const Spacer(),
@@ -430,3 +437,4 @@ class _EditOperadorScreenState extends State<EditOperadorScreen> {
     );
   }
 }
+

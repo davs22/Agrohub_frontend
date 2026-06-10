@@ -1,6 +1,6 @@
-import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/pages/home_operador_screen.dart';
 import 'package:agrohub_app/pages/login/comercio.dart';
+import 'package:agrohub_app/pages/login/operador.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:flutter/material.dart';
 
@@ -26,7 +26,9 @@ class AppEntryGate extends StatelessWidget {
             return const HomeOperadorScreen();
           }
 
-          return const HomeAdmScreen();
+          if (session.role == 'COMERCIO' || session.role == 'FAZENDA') {
+            return const LoginOperadorScreen();
+          }
         }
 
         return const LoginComercioScreen();

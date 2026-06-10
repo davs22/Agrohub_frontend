@@ -222,11 +222,11 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                           ],
                         ),
                         const SizedBox(height: 50),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Digite seu usuario',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -252,11 +252,11 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                           },
                         ),
                         const SizedBox(height: 35),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Digite sua nova senha',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -281,11 +281,11 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                           },
                         ),
                         const SizedBox(height: 35),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Codigo de verificacao',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -322,8 +322,8 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
                               _segundosRestantes > 0
                                   ? 'Aguarde ${_segundosRestantes}s'
                                   : 'Gerar codigo',
-                              style: const TextStyle(
-                                color: Colors.black,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -351,3 +351,4 @@ class _NewPassOperadorScreenState extends State<NewPassOperadorScreen> {
     );
   }
 }
+

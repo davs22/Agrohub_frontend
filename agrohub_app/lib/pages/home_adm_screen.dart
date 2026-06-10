@@ -138,25 +138,42 @@ class _HomeAdmScreenState extends State<HomeAdmScreen> {
   }
 
   void _openOperadores() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewOperadorScreen()));
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const ViewOperadorScreen()),
+      (route) => route.isFirst,
+    );
   }
 
   void _openTalhoes() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewTalhaoScreen()));
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const ViewTalhaoScreen()),
+      (route) => route.isFirst,
+    );
   }
 
   void _openLotes() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewLoteScreen()));
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const ViewLoteScreen()),
+      (route) => route.isFirst,
+    );
   }
 
   void _openMarketplace() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen()));
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+      (route) => route.isFirst,
+    );
   }
 
   void _openEditOperatorFlow() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const ViewOperadorScreen()),
+      (route) => route.isFirst,
     );
   }
 

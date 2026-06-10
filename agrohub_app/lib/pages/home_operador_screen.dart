@@ -83,13 +83,14 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
   }
 
   Widget _metricCard(String label, String value, IconData icon) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: 160,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black12),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -107,9 +108,23 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
                 const SizedBox(height: 3),
-                Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
               ],
             ),
           ),
@@ -155,20 +170,21 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                 Text('Talhão: ${_formatValue(lote['talhao_nome'])}'),
                 Text('Data: ${_formatDate(lote['data_registro'])}'),
                 const SizedBox(height: 10),
-                ButtonComponent(
-                  label: 'Ver detalhes',
-                  height: 40,
-                  borderRadius: 8,
-                  backgroundColor: const Color(0xFF24961F),
-                  borderColor: const Color(0xFF24961F),
-                  onPressed: () {
-                    final idLocal = lote['id_local'] as int?;
-                    if (idLocal == null) return;
-                    Navigator.push(
+                  ButtonComponent(
+                    label: 'Ver detalhes',
+                    height: 40,
+                    borderRadius: 8,
+                    backgroundColor: const Color(0xFF24961F),
+                    borderColor: const Color(0xFF24961F),
+                    onPressed: () {
+                      final idLocal = lote['id_local'] as int?;
+                      if (idLocal == null) return;
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
                         builder: (_) => ProductDetailScreen(idLocal: idLocal),
                       ),
+                      (route) => route.isFirst,
                     ).then((_) => setState(() => _future = _loadData()));
                   },
                 ),
@@ -181,30 +197,34 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
   }
 
   void _openMarketplace() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+      (route) => route.isFirst,
     ).then((_) => setState(() => _future = _loadData()));
   }
 
   void _openCarrinho() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const CarrinhoScreen()),
+      (route) => route.isFirst,
     ).then((_) => setState(() => _future = _loadData()));
   }
 
   void _openPerfil() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const PerfilOperadorScreen()),
+      (route) => route.isFirst,
     ).then((_) => setState(() => _future = _loadData()));
   }
 
   void _openTalhoes() {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const ViewTalhaoOperadorScreen()),
+      (route) => route.isFirst,
     ).then((_) => setState(() => _future = _loadData()));
   }
 
@@ -334,9 +354,9 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                             label: 'Carrinho',
                             height: 46,
                             borderRadius: 10,
-                            backgroundColor: Colors.white,
-                            borderColor: Colors.black,
-                            textColor: Colors.black,
+                            backgroundColor: Theme.of(context).colorScheme.surface,
+                            borderColor: Theme.of(context).colorScheme.outlineVariant,
+                            textColor: Theme.of(context).colorScheme.onSurface,
                             onPressed: _openCarrinho,
                           ),
                         ),
@@ -350,9 +370,9 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                             label: 'Perfil',
                             height: 46,
                             borderRadius: 10,
-                            backgroundColor: Colors.white,
-                            borderColor: Colors.black,
-                            textColor: Colors.black,
+                            backgroundColor: Theme.of(context).colorScheme.surface,
+                            borderColor: Theme.of(context).colorScheme.outlineVariant,
+                            textColor: Theme.of(context).colorScheme.onSurface,
                             onPressed: _openPerfil,
                           ),
                         ),
@@ -362,9 +382,9 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                             label: 'Talhões',
                             height: 46,
                             borderRadius: 10,
-                            backgroundColor: Colors.white,
-                            borderColor: Colors.black,
-                            textColor: Colors.black,
+                            backgroundColor: Theme.of(context).colorScheme.surface,
+                            borderColor: Theme.of(context).colorScheme.outlineVariant,
+                            textColor: Theme.of(context).colorScheme.onSurface,
                             onPressed: _openTalhoes,
                           ),
                         ),
@@ -381,9 +401,9 @@ class _HomeOperadorScreenState extends State<HomeOperadorScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.black12),
+                          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
                         child: const Text(
                           'Nenhum lote disponível no momento.',

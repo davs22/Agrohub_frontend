@@ -2,7 +2,7 @@ import 'package:agrohub_app/components/base_login_template.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/home_adm_screen.dart';
+import 'package:agrohub_app/pages/login/operador.dart';
 import 'package:agrohub_app/pages/registro/comercio.dart';
 import 'package:agrohub_app/services/local_auth_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
@@ -81,20 +81,20 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+      MaterialPageRoute(builder: (context) => const LoginOperadorScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return BaseLoginTemplate(
-      title: 'Administrador',
+      title: 'Empresa',
       svgPath: 'lib/interface_icons/fazenda.svg',
-      headerDrawerTitle: 'Administrador',
+      headerDrawerTitle: 'Empresa',
       visibleOptions: const {
         DrawerMenuOption.configuracoes,
         DrawerMenuOption.novaSenhaAdmin,
-        DrawerMenuOption.operador,
         DrawerMenuOption.logout,
       },
       isLoading: _isLoading,
@@ -107,7 +107,6 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
         child: const Text(
           'Registre-se',
           style: TextStyle(
-            color: Colors.black,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -134,9 +133,9 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           },
         ),
         const SizedBox(height: 12),
-        const TextComponent(
+        TextComponent(
           text: 'Senha',
-          color: Colors.black,
+          color: colorScheme.onSurface,
           fontSize: 25,
           fontWeight: FontWeight.bold,
           aligment: TextAlign.left,
@@ -148,7 +147,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           width: double.infinity,
           height: 65,
           hint: '8 Dígitos',
-          hintColor: Colors.black.withValues(alpha: 0.5),
+          hintColor: colorScheme.onSurface.withValues(alpha: 0.55),
           ephemeral: true,
           controll: _senhaController,
           errorText: _senhaError,

@@ -4,14 +4,14 @@ import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/services/theme_service.dart';
 import 'package:flutter/material.dart';
 
-class ConfiguracoesScreen extends StatefulWidget {
-  const ConfiguracoesScreen({super.key});
+class ConfiguracoesOperadorScreen extends StatefulWidget {
+  const ConfiguracoesOperadorScreen({super.key});
 
   @override
-  State<ConfiguracoesScreen> createState() => _ConfiguracoesScreenState();
+  State<ConfiguracoesOperadorScreen> createState() => _ConfiguracoesOperadorScreenState();
 }
 
-class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
+class _ConfiguracoesOperadorScreenState extends State<ConfiguracoesOperadorScreen> {
   ThemeMode get _themeMode => ThemeService.notifier.value;
 
   Future<void> _setTheme(bool darkMode) async {
@@ -40,7 +40,14 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
       endDrawer: const DrawerMenuComponent(
         headerTitle: 'Configuracoes',
         visibleOptions: {
-          DrawerMenuOption.inicio,
+          DrawerMenuOption.homeOperador,
+          DrawerMenuOption.registrarTalhao,
+          DrawerMenuOption.registrarLote,
+          DrawerMenuOption.marketplace,
+          DrawerMenuOption.perfilOperador,
+          DrawerMenuOption.carrinho,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
         },
         hiddenOptions: {
           DrawerMenuOption.configuracoes,

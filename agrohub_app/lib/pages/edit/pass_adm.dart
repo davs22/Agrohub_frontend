@@ -214,11 +214,11 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           ],
                         ),
                         const SizedBox(height: 50),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Digite seu usuario',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -244,11 +244,11 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           },
                         ),
                         const SizedBox(height: 35),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Digite sua nova senha',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -270,11 +270,11 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                           },
                         ),
                         const SizedBox(height: 35),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: TextComponent(
                             text: 'Código de verificação',
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -306,8 +306,8 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
                             onPressed: _segundosRestantes > 0 ? null : _enviarCodigo,
                             child: Text(
                               _segundosRestantes > 0 ? 'Aguarde ${_segundosRestantes}s' : 'Gerar código',
-                              style: const TextStyle(
-                                color: Colors.black,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -335,3 +335,4 @@ class _NewPassAdmScreenState extends State<NewPassAdmScreen> {
     );
   }
 }
+

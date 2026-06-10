@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/pages/edit/pass_operador.dart';
 import 'package:agrohub_app/pages/home_operador_screen.dart';
+import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/services/local_auth_service.dart';
 import 'package:agrohub_app/services/session_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
@@ -24,6 +25,35 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
   String? _cpfError;
   String? _senhaError;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureCompanySession();
+  }
+
+  Future<void> _ensureCompanySession() async {
+    final session = await SessionService.loadSession();
+    final isCompany = session != null && (session.role == 'COMERCIO' || session.role == 'FAZENDA');
+    if (!mounted || isCompany) {
+      return;
+    }
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<bool> _handleBack() async {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginComercioScreen()),
+      (route) => false,
+    );
+    return false;
+  }
 
   @override
   void dispose() {
@@ -87,82 +117,90 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLoginTemplate(
-      title: 'Operador',
-      svgPath: 'lib/interface_icons/operador.svg',
-      headerDrawerTitle: 'Operador',
-      visibleOptions: const {
-        DrawerMenuOption.administrador,
-        DrawerMenuOption.novaSenhaOperador,
-        DrawerMenuOption.configuracoes,
-        DrawerMenuOption.logout,
+    final colorScheme = Theme.of(context).colorScheme;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _handleBack();
+        }
       },
-      isLoading: _isLoading,
-      onSubmit: _validarEEntrar,
-      footerWidget: TextButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NewPassOperadorScreen()),
-        ),
-        child: const Text(
-          'Esqueci minha senha',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+      child: BaseLoginTemplate(
+        title: 'Operador',
+        svgPath: 'lib/interface_icons/operador.svg',
+        headerDrawerTitle: 'Operador',
+        visibleOptions: const {
+          DrawerMenuOption.administrador,
+          DrawerMenuOption.novaSenhaOperador,
+          DrawerMenuOption.configuracoes,
+          DrawerMenuOption.logout,
+        },
+        isLoading: _isLoading,
+        onSubmit: _validarEEntrar,
+        footerWidget: TextButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NewPassOperadorScreen()),
+          ),
+          child: const Text(
+            'Esqueci minha senha',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
+        fields: [
+          InputComponent(
+            emoji: Icons.badge,
+            borderRadius: 20,
+            width: double.infinity,
+            height: 65,
+            hint: 'CPF',
+            controll: _cpfController,
+            typeInput: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              CpfInputFormatter(),
+            ],
+            errorText: _cpfError,
+            eventChange: (_) {
+              if (_cpfError != null) {
+                setState(() {
+                  _cpfError = LoginValidators.validateCpf(_cpfController.text);
+                });
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+          TextComponent(
+            text: 'Senha',
+            color: colorScheme.onSurface,
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            aligment: TextAlign.left,
+          ),
+          const SizedBox(height: 12),
+          InputComponent(
+            emoji: Icons.lock,
+            borderRadius: 20,
+            width: double.infinity,
+            height: 65,
+            hint: '8 Dígitos',
+            hintColor: colorScheme.onSurface.withValues(alpha: 0.55),
+            ephemeral: true,
+            controll: _senhaController,
+            errorText: _senhaError,
+            eventChange: (_) {
+              if (_senhaError != null) {
+                setState(() {
+                  _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+                });
+              }
+            },
+          ),
+        ],
       ),
-      fields: [
-        InputComponent(
-          emoji: Icons.badge,
-          borderRadius: 20,
-          width: double.infinity,
-          height: 65,
-          hint: 'CPF',
-          controll: _cpfController,
-          typeInput: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            CpfInputFormatter(),
-          ],
-          errorText: _cpfError,
-          eventChange: (_) {
-            if (_cpfError != null) {
-              setState(() {
-                _cpfError = LoginValidators.validateCpf(_cpfController.text);
-              });
-            }
-          },
-        ),
-        const SizedBox(height: 12),
-        const TextComponent(
-          text: 'Senha',
-          color: Colors.black,
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
-          aligment: TextAlign.left,
-        ),
-        const SizedBox(height: 12),
-        InputComponent(
-          emoji: Icons.lock,
-          borderRadius: 20,
-          width: double.infinity,
-          height: 65,
-          hint: '8 Dígitos',
-          hintColor: Colors.black.withValues(alpha: 0.5),
-          ephemeral: true,
-          controll: _senhaController,
-          errorText: _senhaError,
-          eventChange: (_) {
-            if (_senhaError != null) {
-              setState(() {
-                _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
-              });
-            }
-          },
-        ),
-      ],
     );
   }
 }

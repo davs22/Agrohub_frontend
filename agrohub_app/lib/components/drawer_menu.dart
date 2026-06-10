@@ -14,6 +14,8 @@ import 'package:agrohub_app/pages/registro/operador.dart';
 import 'package:agrohub_app/pages/registro/talhao.dart';
 import 'package:agrohub_app/pages/view/carrinho.dart';
 import 'package:agrohub_app/pages/view/configuracoes.dart';
+import 'package:agrohub_app/pages/view/configuracoes_adm.dart';
+import 'package:agrohub_app/pages/view/configuracoes_operador.dart';
 import 'package:agrohub_app/pages/view/lotes.dart';
 import 'package:agrohub_app/pages/view/marketplace.dart';
 import 'package:agrohub_app/pages/view/operador.dart';
@@ -45,6 +47,8 @@ enum DrawerMenuOption {
   perfilOperador,
   marketplace,
   configuracoes,
+  configuracoesAdm,
+  configuracoesOperador,
   logout,
 }
 
@@ -321,6 +325,18 @@ class DrawerMenuComponent extends StatelessWidget {
           icon: Icons.settings,
           onTap: () => _navigateTo(context, const ConfiguracoesScreen()),
         );
+        case DrawerMenuOption.configuracoesAdm:
+        return DrawerItem(
+          title: 'Configuracoes',
+          icon: Icons.settings,
+          onTap: () => _navigateTo(context, const ConfiguracoesAdmScreen()),
+        );
+        case DrawerMenuOption.configuracoesOperador:
+        return DrawerItem(
+          title: 'Configuracoes',
+          icon: Icons.settings,
+          onTap: () => _navigateTo(context, const ConfiguracoesOperadorScreen()),
+        );
       case DrawerMenuOption.logout:
         return DrawerItem(
           title: 'Sair',
@@ -341,9 +357,11 @@ class DrawerMenuComponent extends StatelessWidget {
 
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.pop(context);
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => screen),
+      (route) => route.isFirst,
     );
   }
+
 }

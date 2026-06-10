@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/status_selector.dart';
 import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -168,17 +169,17 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
     final talhaoIdError = LoginValidators.validateRequiredText(
       _talhaoIdController.text,
       fieldName: 'o id do talhão',
-      minLength: 3,
+      minLength: 1,
     );
     final operadorIdError = LoginValidators.validateRequiredText(
       _operadorIdController.text,
       fieldName: 'o id do operador',
-      minLength: 3,
+      minLength: 1,
     );
     final produtoError = LoginValidators.validateRequiredText(
       _produtoController.text,
       fieldName: 'o produto',
-      minLength: 2,
+      minLength: 1,
     );
     final quantidadeError = LoginValidators.validatePositiveNumber(
       _quantidadeController.text,
@@ -237,7 +238,10 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Lote salvo no banco local.')),
     );
-    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+    );
   }
 
   Widget _imagePreview() {
@@ -464,10 +468,10 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
           contentPadding: EdgeInsets.zero,
           controlAffinity: ListTileControlAffinity.leading,
           dense: true,
-          title: const Text(
+          title: Text(
             'Adicionar no marketplace',
             style: TextStyle(
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -476,3 +480,4 @@ class _RegisterLoteScreenState extends State<RegisterLoteScreen> {
     );
   }
 }
+

@@ -172,8 +172,8 @@ class _PerfilOperadorScreenState extends State<PerfilOperadorScreen> {
                     height: 46,
                     borderRadius: 10,
                     backgroundColor: Colors.white,
-                    borderColor: Colors.black,
-                    textColor: Colors.black,
+                    borderColor: Theme.of(context).colorScheme.onSurface,
+                    textColor: Theme.of(context).colorScheme.onSurface,
                     onPressed: _openReset,
                   ),
                 ],
@@ -195,3 +195,4 @@ class _PerfilOperadorData {
     required this.record,
   });
 }
+

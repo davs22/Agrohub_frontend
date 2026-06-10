@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/status_selector.dart';
 import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/pages/home_adm_screen.dart';
 import 'package:agrohub_app/services/local_image_service.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
@@ -224,7 +225,10 @@ class _EditLoteScreenState extends State<EditLoteScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Lote atualizado no banco local.')),
     );
-    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+    );
   }
 
   Future<void> _excluirLote() async {
@@ -265,7 +269,10 @@ class _EditLoteScreenState extends State<EditLoteScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Lote excluido do banco local.')),
     );
-    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeAdmScreen()),
+    );
   }
 
   Widget _imagePreview() {
@@ -489,10 +496,10 @@ class _EditLoteScreenState extends State<EditLoteScreen> {
           contentPadding: EdgeInsets.zero,
           controlAffinity: ListTileControlAffinity.leading,
           dense: true,
-          title: const Text(
+          title: Text(
             'Adicionar no marketplace',
             style: TextStyle(
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -513,3 +520,4 @@ class _EditLoteScreenState extends State<EditLoteScreen> {
     );
   }
 }
+
