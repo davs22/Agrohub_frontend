@@ -39,6 +39,12 @@ class Win32Window {
   // Show the current window. Returns true if the window was successfully shown.
   bool Show();
 
+  // Enters a borderless fullscreen mode on the current monitor.
+  void EnterFullscreen();
+
+  // Restores the window when fullscreen is active.
+  void ExitFullscreen();
+
   // Release OS resources associated with window.
   void Destroy();
 
@@ -91,6 +97,9 @@ class Win32Window {
   static void UpdateTheme(HWND const window);
 
   bool quit_on_close_ = false;
+  bool is_fullscreen_ = false;
+  LONG previous_style_ = 0;
+  WINDOWPLACEMENT previous_placement_ = {sizeof(WINDOWPLACEMENT)};
 
   // window handle for top level window.
   HWND window_handle_ = nullptr;

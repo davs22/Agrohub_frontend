@@ -153,6 +153,45 @@ bool Win32Window::Show() {
   return ShowWindow(window_handle_, SW_SHOWNORMAL);
 }
 
+void Win32Window::EnterFullscreen() {
+  if (window_handle_ == nullptr || is_fullscreen_) {
+    return;
+  }
+
+  previous_style_ = GetWindowLong(window_handle_, GWL_STYLE);
+  previous_placement_.length = sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(window_handle_, &previous_placement_);
+
+  HMONITOR monitor = MonitorFromWindow(window_handle_, MONITOR_DEFAULTTONEAREST);
+  MONITORINFO monitor_info = {sizeof(monitor_info)};
+  if (!GetMonitorInfo(monitor, &monitor_info)) {
+    return;
+  }
+
+  SetWindowLong(window_handle_, GWL_STYLE,
+                (previous_style_ & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
+  SetWindowPos(window_handle_, HWND_TOP, monitor_info.rcMonitor.left,
+               monitor_info.rcMonitor.top,
+               monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+               monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+               SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+  is_fullscreen_ = true;
+}
+
+void Win32Window::ExitFullscreen() {
+  if (window_handle_ == nullptr || !is_fullscreen_) {
+    return;
+  }
+
+  SetWindowLong(window_handle_, GWL_STYLE,
+                previous_style_ == 0 ? WS_OVERLAPPEDWINDOW : previous_style_);
+  SetWindowPlacement(window_handle_, &previous_placement_);
+  SetWindowPos(window_handle_, nullptr, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
+                   SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+  is_fullscreen_ = false;
+}
+
 // static
 LRESULT CALLBACK Win32Window::WndProc(HWND const window,
                                       UINT const message,
@@ -212,6 +251,13 @@ Win32Window::MessageHandler(HWND hwnd,
         SetFocus(child_content_);
       }
       return 0;
+
+    case WM_KEYDOWN:
+      if (wparam == VK_ESCAPE && is_fullscreen_) {
+        ExitFullscreen();
+        return 0;
+      }
+      break;
 
     case WM_DWMCOLORIZATIONCOLORCHANGED:
       UpdateTheme(hwnd);

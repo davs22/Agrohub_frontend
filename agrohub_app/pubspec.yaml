@@ -45,6 +45,7 @@ flutter:
   assets:
     - lib/interface_icons/
     - assets/icon/
+    - assets/seed_products/
 
 
 dev_dependencies:

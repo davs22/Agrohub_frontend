@@ -51,6 +51,10 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  if (message == WM_KEYDOWN && wparam == VK_ESCAPE) {
+    return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
+  }
+
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

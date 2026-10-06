@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/talhao.dart';
 import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class ViewTalhaoScreen extends StatefulWidget {
@@ -110,138 +111,170 @@ class _ViewTalhaoScreenState extends State<ViewTalhaoScreen> {
   void _openEdit(int idLocal) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => EditTalhaoScreen(idLocal: idLocal)),
+      MaterialPageRoute(
+          builder: (context) => EditTalhaoScreen(idLocal: idLocal)),
     ).then((_) => _loadTalhoes());
   }
 
   @override
   Widget build(BuildContext context) {
     final talhoes = _filteredTalhoes;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return FlowBackGuard(
       child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
-            ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        visibleOptions: {
-          DrawerMenuOption.homeAdmin,
-          DrawerMenuOption.listaOperadores,
-          DrawerMenuOption.registrarOperador,
-          DrawerMenuOption.editarOperador,
-          DrawerMenuOption.registrarTalhao,
-          DrawerMenuOption.editarTalhao,
-          DrawerMenuOption.registrarLote,
-          DrawerMenuOption.editarLote,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TextComponent(
-                text: 'Talhões',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Pesquisar',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+            ),
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Administrador',
+          visibleOptions: {
+            DrawerMenuOption.homeAdmin,
+            DrawerMenuOption.listaOperadores,
+            DrawerMenuOption.registrarOperador,
+            DrawerMenuOption.editarOperador,
+            DrawerMenuOption.registrarTalhao,
+            DrawerMenuOption.editarTalhao,
+            DrawerMenuOption.registrarLote,
+            DrawerMenuOption.editarLote,
+            DrawerMenuOption.marketplace,
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveLayout.homeMaxWidth(screenWidth),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const TextComponent(
+                      text: 'Talhões',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Pesquisar',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Scrollbar(
+                              thumbVisibility: true,
+                              child: talhoes.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Nenhum talhão encontrado.',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: talhoes.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final talhao = talhoes[index];
+                                        final idLocal =
+                                            talhao['id_local'] as int?;
+
+                                        return Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            color: Colors.white,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      _text(talhao['nome']),
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (idLocal != null)
+                                                    IconButton(
+                                                      onPressed: () =>
+                                                          _openEdit(idLocal),
+                                                      icon: const Icon(
+                                                          Icons.edit),
+                                                    ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              _field('Operador:',
+                                                  talhao['operador_nome']),
+                                              _field('Nome do talhão:',
+                                                  talhao['nome']),
+                                              _field('Tamanho (hectares):',
+                                                  talhao['tamanho_hectares']),
+                                              _field('Cultura atual:',
+                                                  talhao['cultura_atual']),
+                                              _field(
+                                                  'Status:', talhao['status']),
+                                              _field(
+                                                  'Data de registro:',
+                                                  _date(
+                                                      talhao['data_registro'])),
+                                              _field(
+                                                  'Data de atualização:',
+                                                  _date(talhao[
+                                                      'data_atualizacao'])),
+                                              _field(
+                                                  'Status de sincronização:',
+                                                  talhao[
+                                                      'status_sincronizacao']),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: talhoes.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Nenhum talhão encontrado.',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: talhoes.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final talhao = talhoes[index];
-                                  final idLocal = talhao['id_local'] as int?;
-
-                                  return Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.white,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                _text(talhao['nome']),
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                            if (idLocal != null)
-                                              IconButton(
-                                                onPressed: () => _openEdit(idLocal),
-                                                icon: const Icon(Icons.edit),
-                                              ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        _field('Operador:', talhao['operador_nome']),
-                                        _field('Nome do talhão:', talhao['nome']),
-                                        _field('Tamanho (hectares):', talhao['tamanho_hectares']),
-                                        _field('Cultura atual:', talhao['cultura_atual']),
-                                        _field('Status:', talhao['status']),
-                                        _field('Data de registro:', _date(talhao['data_registro'])),
-                                        _field('Data de atualização:', _date(talhao['data_atualizacao'])),
-                                        _field('Status de sincronização:', talhao['status_sincronizacao']),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

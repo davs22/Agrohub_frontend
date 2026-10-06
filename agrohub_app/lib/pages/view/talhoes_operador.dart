@@ -3,13 +3,15 @@ import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class ViewTalhaoOperadorScreen extends StatefulWidget {
   const ViewTalhaoOperadorScreen({super.key});
 
   @override
-  State<ViewTalhaoOperadorScreen> createState() => _ViewTalhaoOperadorScreenState();
+  State<ViewTalhaoOperadorScreen> createState() =>
+      _ViewTalhaoOperadorScreenState();
 }
 
 class _ViewTalhaoOperadorScreenState extends State<ViewTalhaoOperadorScreen> {
@@ -109,107 +111,131 @@ class _ViewTalhaoOperadorScreenState extends State<ViewTalhaoOperadorScreen> {
   @override
   Widget build(BuildContext context) {
     final talhoes = _filteredTalhoes;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return FlowBackGuard(
       child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
-            ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Operador',
-        visibleOptions: {
-          DrawerMenuOption.homeOperador,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.talhoes,
-          DrawerMenuOption.carrinho,
-          DrawerMenuOption.perfilOperador,
-          DrawerMenuOption.novaSenhaOperador,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TextComponent(
-                text: 'Talhões',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Pesquisar',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+            ),
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Operador',
+          visibleOptions: {
+            DrawerMenuOption.homeOperador,
+            DrawerMenuOption.marketplace,
+            DrawerMenuOption.talhoes,
+            DrawerMenuOption.carrinho,
+            DrawerMenuOption.perfilOperador,
+            DrawerMenuOption.novaSenhaOperador,
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveLayout.homeMaxWidth(screenWidth),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const TextComponent(
+                      text: 'Talhões',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Pesquisar',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Scrollbar(
+                              thumbVisibility: true,
+                              child: talhoes.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Nenhum talhão encontrado.',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: talhoes.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final talhao = talhoes[index];
+
+                                        return Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            color: Colors.white,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              _field('Operador:',
+                                                  talhao['operador_nome']),
+                                              _field('Nome do talhão:',
+                                                  talhao['nome']),
+                                              _field('Tamanho (hectares):',
+                                                  talhao['tamanho_hectares']),
+                                              _field('Cultura atual:',
+                                                  talhao['cultura_atual']),
+                                              _field(
+                                                  'Status:', talhao['status']),
+                                              _field(
+                                                  'Data de registro:',
+                                                  _date(
+                                                      talhao['data_registro'])),
+                                              _field(
+                                                  'Data de atualização:',
+                                                  _date(talhao[
+                                                      'data_atualizacao'])),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: talhoes.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Nenhum talhão encontrado.',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: talhoes.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final talhao = talhoes[index];
-
-                                  return Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.white,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        _field('Operador:', talhao['operador_nome']),
-                                        _field('Nome do talhão:', talhao['nome']),
-                                        _field('Tamanho (hectares):', talhao['tamanho_hectares']),
-                                        _field('Cultura atual:', talhao['cultura_atual']),
-                                        _field('Status:', talhao['status']),
-                                        _field('Data de registro:', _date(talhao['data_registro'])),
-                                        _field('Data de atualização:', _date(talhao['data_atualizacao'])),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

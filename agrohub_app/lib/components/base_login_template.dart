@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
@@ -51,8 +50,10 @@ class BaseLoginTemplate extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final contentWidth = ResponsiveLayout.contentMaxWidth(constraints.maxWidth);
-            final horizontalPadding = ResponsiveLayout.pageHorizontalPadding(constraints.maxWidth);
+            final contentWidth =
+                ResponsiveLayout.contentMaxWidth(constraints.maxWidth);
+            final horizontalPadding =
+                ResponsiveLayout.pageHorizontalPadding(constraints.maxWidth);
             return SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -71,10 +72,11 @@ class BaseLoginTemplate extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Center(
-                          child: SvgPicture.asset(
-                            svgPath,
-                            width: 110,
-                            height: 110,
+                          child: Image.asset(
+                            'assets/icon/agrohub_logo.png',
+                            width: 128,
+                            height: 128,
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: 60),
@@ -90,7 +92,8 @@ class BaseLoginTemplate extends StatelessWidget {
                         const SizedBox(height: 60),
                         Center(
                           child: isLoading
-                              ? const CircularProgressIndicator(color: Colors.green)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.green)
                               : ButtonComponent(
                                   label: 'Entrar',
                                   borderRadius: 10,

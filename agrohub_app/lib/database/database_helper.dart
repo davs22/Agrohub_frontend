@@ -1,6 +1,8 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'initial_seed_data.dart';
+
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
@@ -22,6 +24,7 @@ class DatabaseHelper {
       version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
+      onOpen: InitialSeedData.seed,
     );
   }
 
@@ -138,6 +141,8 @@ class DatabaseHelper {
         status_sincronizacao INTEGER NOT NULL DEFAULT 1
       )
     ''');
+
+    await InitialSeedData.seed(db);
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
@@ -157,21 +162,26 @@ class DatabaseHelper {
       await _addColumnIfMissing(db, 'lotes', 'codigo_rastreio', 'TEXT');
       await _addColumnIfMissing(db, 'lotes', 'status', 'TEXT');
       await _addColumnIfMissing(db, 'lotes', 'imagem_url', 'TEXT');
-      await _addColumnIfMissing(db, 'lotes', 'is_published', 'INTEGER NOT NULL DEFAULT 0');
+      await _addColumnIfMissing(
+          db, 'lotes', 'is_published', 'INTEGER NOT NULL DEFAULT 0');
     }
 
     if (oldVersion < 3) {
-      await _addColumnIfMissing(db, 'fazendas', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
+      await _addColumnIfMissing(
+          db, 'fazendas', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
       await _addColumnIfMissing(db, 'fazendas', 'data_registro', 'TEXT');
       await _addColumnIfMissing(db, 'fazendas', 'data_atualizacao', 'TEXT');
-      await _addColumnIfMissing(db, 'comercios', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
+      await _addColumnIfMissing(
+          db, 'comercios', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
       await _addColumnIfMissing(db, 'comercios', 'data_registro', 'TEXT');
       await _addColumnIfMissing(db, 'comercios', 'data_atualizacao', 'TEXT');
       await _addColumnIfMissing(db, 'operadores', 'documento_admin', 'TEXT');
-      await _addColumnIfMissing(db, 'operadores', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
+      await _addColumnIfMissing(
+          db, 'operadores', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
       await _addColumnIfMissing(db, 'operadores', 'data_registro', 'TEXT');
       await _addColumnIfMissing(db, 'operadores', 'data_atualizacao', 'TEXT');
-      await _addColumnIfMissing(db, 'talhoes', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
+      await _addColumnIfMissing(
+          db, 'talhoes', 'status', 'TEXT NOT NULL DEFAULT \'ATIVO\'');
       await _addColumnIfMissing(db, 'talhoes', 'data_registro', 'TEXT');
       await _addColumnIfMissing(db, 'talhoes', 'data_atualizacao', 'TEXT');
       await _addColumnIfMissing(db, 'lotes', 'imagem_base64', 'TEXT');
@@ -450,7 +460,7 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.rawQuery(
       'SELECT COUNT(*) AS total FROM $tabela'
-          '${where != null ? ' WHERE $where' : ''}',
+      '${where != null ? ' WHERE $where' : ''}',
       whereArgs ?? const [],
     );
 

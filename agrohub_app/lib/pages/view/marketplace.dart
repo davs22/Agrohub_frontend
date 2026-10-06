@@ -152,154 +152,200 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
     return FlowBackGuard(
       child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
+              ),
             ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Operador',
-        visibleOptions: {
-          DrawerMenuOption.homeOperador,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.talhoes,
-          DrawerMenuOption.carrinho,
-          DrawerMenuOption.perfilOperador,
-          DrawerMenuOption.novaSenhaOperador,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TextComponent(
-                text: 'Marketplace',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Operador',
+          visibleOptions: {
+            DrawerMenuOption.homeOperador,
+            DrawerMenuOption.marketplace,
+            DrawerMenuOption.talhoes,
+            DrawerMenuOption.carrinho,
+            DrawerMenuOption.perfilOperador,
+            DrawerMenuOption.novaSenhaOperador,
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveLayout.homeMaxWidth(screenWidth),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Pesquisar',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: lotes.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Nenhum lote publicado encontrado.',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: lotes.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final lote = lotes[index];
-                                  final idLocal = lote['id_local'] as int?;
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const TextComponent(
+                      text: 'Marketplace',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Pesquisar',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Scrollbar(
+                              thumbVisibility: true,
+                              child: lotes.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Nenhum lote publicado encontrado.',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: lotes.length,
+                                      separatorBuilder: (context, index) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final lote = lotes[index];
+                                        final idLocal =
+                                            lote['id_local'] as int?;
 
-                                  return Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.white,
-                                    ),
-                                    child: compact
-                                        ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              _buildImage(lote['imagem_base64']?.toString(), double.infinity, 180),
-                                              const SizedBox(height: 12),
-                                              Text(
-                                                lote['produto']?.toString() ?? '-',
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                'Data: ${_formatDate(lote['data_registro'])}',
-                                                style: const TextStyle(fontWeight: FontWeight.w600),
-                                              ),
-                                              const SizedBox(height: 10),
-                                              SizedBox(
-                                                width: double.infinity,
-                                                child: ButtonComponent(
-                                                  label: 'Mais detalhes',
-                                                  height: 40,
-                                                  fontSize: 15,
-                                                  borderRadius: 4,
-                                                  backgroundColor: const Color(0xFF24961F),
-                                                  borderColor: const Color(0xFF24961F),
-                                                  onPressed: idLocal == null ? null : () => _openDetails(idLocal),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              _buildImage(lote['imagem_base64']?.toString(), imageWidth, imageHeight),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                        return Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            color: Colors.white,
+                                          ),
+                                          child: compact
+                                              ? Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
+                                                    _buildImage(
+                                                        lote['imagem_base64']
+                                                            ?.toString(),
+                                                        double.infinity,
+                                                        180),
+                                                    const SizedBox(height: 12),
                                                     Text(
-                                                      lote['produto']?.toString() ?? '-',
+                                                      lote['produto']
+                                                              ?.toString() ??
+                                                          '-',
                                                       style: const TextStyle(
                                                         fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text(
                                                       'Data: ${_formatDate(lote['data_registro'])}',
-                                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
+                                                    const SizedBox(height: 10),
+                                                    SizedBox(
+                                                      width: double.infinity,
+                                                      child: ButtonComponent(
+                                                        label: 'Mais detalhes',
+                                                        height: 40,
+                                                        fontSize: 15,
+                                                        borderRadius: 4,
+                                                        backgroundColor:
+                                                            const Color(
+                                                                0xFF24961F),
+                                                        borderColor:
+                                                            const Color(
+                                                                0xFF24961F),
+                                                        onPressed: idLocal ==
+                                                                null
+                                                            ? null
+                                                            : () =>
+                                                                _openDetails(
+                                                                    idLocal),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              : Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    _buildImage(
+                                                        lote['imagem_base64']
+                                                            ?.toString(),
+                                                        imageWidth,
+                                                        imageHeight),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            lote['produto']
+                                                                    ?.toString() ??
+                                                                '-',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              height: 4),
+                                                          Text(
+                                                            'Data: ${_formatDate(lote['data_registro'])}',
+                                                            style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                  );
-                                },
-                              ),
-                      ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
 }
-

@@ -4,6 +4,7 @@ import 'package:agrohub_app/components/text.dart';
 import 'package:agrohub_app/database/database_helper.dart';
 import 'package:agrohub_app/pages/edit/operador.dart';
 import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/utils/responsive_layout.dart';
 import 'package:flutter/material.dart';
 
 class ViewOperadorScreen extends StatefulWidget {
@@ -110,131 +111,164 @@ class _ViewOperadorScreenState extends State<ViewOperadorScreen> {
   @override
   Widget build(BuildContext context) {
     final operadores = _filteredOperadores;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return FlowBackGuard(
       child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
-            ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        visibleOptions: {
-          DrawerMenuOption.homeAdmin,
-          DrawerMenuOption.listaOperadores,
-          DrawerMenuOption.registrarOperador,
-          DrawerMenuOption.editarOperador,
-          DrawerMenuOption.registrarTalhao,
-          DrawerMenuOption.editarTalhao,
-          DrawerMenuOption.registrarLote,
-          DrawerMenuOption.editarLote,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TextComponent(
-                text: 'Operadores',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Pesquisar',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+            ),
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Administrador',
+          visibleOptions: {
+            DrawerMenuOption.homeAdmin,
+            DrawerMenuOption.listaOperadores,
+            DrawerMenuOption.registrarOperador,
+            DrawerMenuOption.editarOperador,
+            DrawerMenuOption.registrarTalhao,
+            DrawerMenuOption.editarTalhao,
+            DrawerMenuOption.registrarLote,
+            DrawerMenuOption.editarLote,
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveLayout.homeMaxWidth(screenWidth),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const TextComponent(
+                      text: 'Operadores',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Pesquisar',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Scrollbar(
+                              thumbVisibility: true,
+                              child: operadores.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Nenhum operador encontrado.',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: operadores.length,
+                                      separatorBuilder: (context, index) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final operador = operadores[index];
+                                        final idLocal =
+                                            operador['id_local'] as int?;
+
+                                        return Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            color: Colors.white,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      _formatValue(operador[
+                                                          'nome_completo']),
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (idLocal != null)
+                                                    IconButton(
+                                                      onPressed: () =>
+                                                          _openEdit(idLocal),
+                                                      icon: const Icon(
+                                                          Icons.edit),
+                                                    ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              _buildField('Id_operador:',
+                                                  operador['id_local']),
+                                              _buildField('Cnpj/cpf_admin:',
+                                                  operador['documento_admin']),
+                                              _buildField(
+                                                  'Cpf:', operador['cpf']),
+                                              _buildField('Telefone:',
+                                                  operador['telefone']),
+                                              _buildField(
+                                                  'Email:', operador['email']),
+                                              _buildField('Status:',
+                                                  operador['status']),
+                                              _buildField(
+                                                  'Data_registro:',
+                                                  _formatDate(operador[
+                                                      'data_registro'])),
+                                              _buildField(
+                                                  'Data_atualização:',
+                                                  _formatDate(operador[
+                                                      'data_atualizacao'])),
+                                              _buildField(
+                                                  'Status_sinc:',
+                                                  operador[
+                                                      'status_sincronizacao']),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: operadores.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Nenhum operador encontrado.',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: operadores.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final operador = operadores[index];
-                                  final idLocal = operador['id_local'] as int?;
-
-                                  return Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.white,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                _formatValue(operador['nome_completo']),
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                            if (idLocal != null)
-                                              IconButton(
-                                                onPressed: () => _openEdit(idLocal),
-                                                icon: const Icon(Icons.edit),
-                                              ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        _buildField('Id_operador:', operador['id_local']),
-                                        _buildField('Cnpj/cpf_admin:', operador['documento_admin']),
-                                        _buildField('Cpf:', operador['cpf']),
-                                        _buildField('Telefone:', operador['telefone']),
-                                        _buildField('Email:', operador['email']),
-                                        _buildField('Status:', operador['status']),
-                                        _buildField('Data_registro:', _formatDate(operador['data_registro'])),
-                                        _buildField('Data_atualização:', _formatDate(operador['data_atualizacao'])),
-                                        _buildField('Status_sinc:', operador['status_sincronizacao']),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

@@ -164,155 +164,224 @@ class _ViewLoteScreenState extends State<ViewLoteScreen> {
 
     return FlowBackGuard(
       child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
+              ),
             ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        visibleOptions: {
-          DrawerMenuOption.homeAdmin,
-          DrawerMenuOption.listaOperadores,
-          DrawerMenuOption.registrarOperador,
-          DrawerMenuOption.registrarTalhao,
-          DrawerMenuOption.editarTalhao,
-          DrawerMenuOption.registrarLote,
-          DrawerMenuOption.editarLote,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TextComponent(
-                text: 'Lotes',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Administrador',
+          visibleOptions: {
+            DrawerMenuOption.homeAdmin,
+            DrawerMenuOption.listaOperadores,
+            DrawerMenuOption.registrarOperador,
+            DrawerMenuOption.registrarTalhao,
+            DrawerMenuOption.editarTalhao,
+            DrawerMenuOption.registrarLote,
+            DrawerMenuOption.editarLote,
+            DrawerMenuOption.marketplace,
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveLayout.homeMaxWidth(screenWidth),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Pesquisar',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Scrollbar(
-                        thumbVisibility: true,
-                        child: lotes.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Nenhum lote encontrado.',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: lotes.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final lote = lotes[index];
-                                  final idLocal = lote['id_local'] as int?;
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const TextComponent(
+                      text: 'Lotes',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Pesquisar',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Scrollbar(
+                              thumbVisibility: true,
+                              child: lotes.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Nenhum lote encontrado.',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: lotes.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final lote = lotes[index];
+                                        final idLocal =
+                                            lote['id_local'] as int?;
 
-                                  return Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black),
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.white,
-                                    ),
-                                    child: compact
-                                        ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              _image(lote['imagem_base64'], double.infinity, 180),
-                                              const SizedBox(height: 12),
-                                              _field('Produto:', lote['produto']),
-                                              _field('Talhão:', lote['talhao_nome']),
-                                              _field('Operador:', lote['operador_nome']),
-                                              if (idLocal != null)
-                                                Align(
-                                                  alignment: Alignment.centerRight,
-                                                  child: IconButton(
-                                                    onPressed: () => _openEdit(idLocal),
-                                                    icon: const Icon(Icons.edit),
-                                                  ),
-                                                ),
-                                              const SizedBox(height: 10),
-                                              _field('Quantidade:', lote['quantidade']),
-                                              _field('Unidade de medida:', lote['unidade_medida']),
-                                              _field('Status:', lote['status']),
-                                              _field('Data de registro:', _date(lote['data_registro'])),
-                                              _field('Data de atualização:', _date(lote['data_atualizacao'])),
-                                              _field('Status de sincronização:', lote['status_sincronizacao']),
-                                            ],
-                                          )
-                                        : Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  _image(lote['imagem_base64'], imageWidth, imageHeight),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                        return Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            color: Colors.white,
+                                          ),
+                                          child: compact
+                                              ? Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    _image(
+                                                        lote['imagem_base64'],
+                                                        double.infinity,
+                                                        180),
+                                                    const SizedBox(height: 12),
+                                                    _field('Produto:',
+                                                        lote['produto']),
+                                                    _field('Talhão:',
+                                                        lote['talhao_nome']),
+                                                    _field('Operador:',
+                                                        lote['operador_nome']),
+                                                    if (idLocal != null)
+                                                      Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: IconButton(
+                                                          onPressed: () =>
+                                                              _openEdit(
+                                                                  idLocal),
+                                                          icon: const Icon(
+                                                              Icons.edit),
+                                                        ),
+                                                      ),
+                                                    const SizedBox(height: 10),
+                                                    _field('Quantidade:',
+                                                        lote['quantidade']),
+                                                    _field('Unidade de medida:',
+                                                        lote['unidade_medida']),
+                                                    _field('Status:',
+                                                        lote['status']),
+                                                    _field(
+                                                        'Data de registro:',
+                                                        _date(lote[
+                                                            'data_registro'])),
+                                                    _field(
+                                                        'Data de atualização:',
+                                                        _date(lote[
+                                                            'data_atualizacao'])),
+                                                    _field(
+                                                        'Status de sincronização:',
+                                                        lote[
+                                                            'status_sincronizacao']),
+                                                  ],
+                                                )
+                                              : Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
-                                                        _field('Produto:', lote['produto']),
-                                                        _field('Talhão:', lote['talhao_nome']),
-                                                        _field('Operador:', lote['operador_nome']),
+                                                        _image(
+                                                            lote[
+                                                                'imagem_base64'],
+                                                            imageWidth,
+                                                            imageHeight),
+                                                        const SizedBox(
+                                                            width: 12),
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              _field(
+                                                                  'Produto:',
+                                                                  lote[
+                                                                      'produto']),
+                                                              _field(
+                                                                  'Talhão:',
+                                                                  lote[
+                                                                      'talhao_nome']),
+                                                              _field(
+                                                                  'Operador:',
+                                                                  lote[
+                                                                      'operador_nome']),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        if (idLocal != null)
+                                                          IconButton(
+                                                            onPressed: () =>
+                                                                _openEdit(
+                                                                    idLocal),
+                                                            icon: const Icon(
+                                                                Icons.edit),
+                                                          ),
                                                       ],
                                                     ),
-                                                  ),
-                                                  if (idLocal != null)
-                                                    IconButton(
-                                                      onPressed: () => _openEdit(idLocal),
-                                                      icon: const Icon(Icons.edit),
-                                                    ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 10),
-                                              _field('Quantidade:', lote['quantidade']),
-                                              _field('Unidade de medida:', lote['unidade_medida']),
-                                              _field('Status:', lote['status']),
-                                              _field('Data de registro:', _date(lote['data_registro'])),
-                                              _field('Data de atualização:', _date(lote['data_atualizacao'])),
-                                              _field('Status de sincronização:', lote['status_sincronizacao']),
-                                            ],
-                                          ),
-                                  );
-                                },
-                              ),
-                      ),
+                                                    const SizedBox(height: 10),
+                                                    _field('Quantidade:',
+                                                        lote['quantidade']),
+                                                    _field('Unidade de medida:',
+                                                        lote['unidade_medida']),
+                                                    _field('Status:',
+                                                        lote['status']),
+                                                    _field(
+                                                        'Data de registro:',
+                                                        _date(lote[
+                                                            'data_registro'])),
+                                                    _field(
+                                                        'Data de atualização:',
+                                                        _date(lote[
+                                                            'data_atualizacao'])),
+                                                    _field(
+                                                        'Status de sincronização:',
+                                                        lote[
+                                                            'status_sincronizacao']),
+                                                  ],
+                                                ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

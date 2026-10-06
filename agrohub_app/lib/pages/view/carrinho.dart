@@ -32,7 +32,8 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       return null;
     }
 
-    final items = await LocalCartService.listarCarrinho(session.localId!.toString());
+    final items =
+        await LocalCartService.listarCarrinho(session.localId!.toString());
     return _CarrinhoData(session: session, items: items);
   }
 
@@ -111,200 +112,289 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
 
     return FlowBackGuard(
       child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+                icon: const Icon(Icons.menu),
+              ),
             ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Operador',
-        visibleOptions: {
-          DrawerMenuOption.homeOperador,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.talhoes,
-          DrawerMenuOption.carrinho,
-          DrawerMenuOption.perfilOperador,
-          DrawerMenuOption.novaSenhaOperador,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: FutureBuilder<_CarrinhoData?>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(
+          headerTitle: 'Operador',
+          visibleOptions: {
+            DrawerMenuOption.homeOperador,
+            DrawerMenuOption.marketplace,
+            DrawerMenuOption.talhoes,
+            DrawerMenuOption.carrinho,
+            DrawerMenuOption.perfilOperador,
+            DrawerMenuOption.novaSenhaOperador,
+            DrawerMenuOption.configuracoes,
+            DrawerMenuOption.logout,
+          },
+        ),
+        body: SafeArea(
+          child: FutureBuilder<_CarrinhoData?>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            final data = snapshot.data;
-            if (data == null) {
-              return const Center(
-                child: Text(
-                  'Carrinho nao encontrado.',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              );
-            }
-
-            final items = data.items;
-
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const TextComponent(
-                    text: 'Carrinho',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              final data = snapshot.data;
+              if (data == null) {
+                return const Center(
+                  child: Text(
+                    'Carrinho nao encontrado.',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: items.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Seu carrinho está vazio.',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          )
-                        : Scrollbar(
-                            thumbVisibility: true,
-                            child: ListView.separated(
-                              itemCount: items.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final item = items[index];
-                                final idLocal = item['id_local'] as int?;
-                                final loteId = int.tryParse(item['lote_id']?.toString() ?? '');
+                );
+              }
 
-                                return Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.black),
+              final items = data.items;
+
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: ResponsiveLayout.homeMaxWidth(screenWidth),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const TextComponent(
+                          text: 'Carrinho',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: items.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'Seu carrinho está vazio.',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w600),
                                   ),
-                                  child: compact
-                                      ? Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            _image(item['imagem_base64']?.toString(), double.infinity, 160),
-                                            const SizedBox(height: 12),
-                                            _line('Produto:', item['produto']),
-                                            _line('Data_registro:', _formatDate(item['data_registro'])),
-                                            _line('Talhão:', item['talhao_nome']),
-                                            _line('Operador:', item['operador_nome']),
-                                            const SizedBox(height: 10),
-                                            Column(
-                                              children: [
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: ButtonComponent(
-                                                    label: 'Mais detalhes',
-                                                    height: 38,
-                                                    borderRadius: 6,
-                                                    backgroundColor: const Color(0xFF24961F),
-                                                    borderColor: const Color(0xFF24961F),
-                                                    onPressed: loteId == null ? null : () => _openDetails(loteId),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 10),
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: ButtonComponent(
-                                                    label: 'Excluir',
-                                                    height: 38,
-                                                    borderRadius: 6,
-                                                    backgroundColor: const Color(0xFFFF1D1D),
-                                                    borderColor: const Color(0xFFFF1D1D),
-                                                    textColor: Colors.black,
-                                                    onPressed: idLocal == null ? null : () => _removerItem(idLocal),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        )
-                                      : Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            _image(item['imagem_base64']?.toString(), imageWidth, imageHeight),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                )
+                              : Scrollbar(
+                                  thumbVisibility: true,
+                                  child: ListView.separated(
+                                    itemCount: items.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(height: 12),
+                                    itemBuilder: (context, index) {
+                                      final item = items[index];
+                                      final idLocal = item['id_local'] as int?;
+                                      final loteId = int.tryParse(
+                                          item['lote_id']?.toString() ?? '');
+
+                                      return Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border:
+                                              Border.all(color: Colors.black),
+                                        ),
+                                        child: compact
+                                            ? Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  _line('Produto:', item['produto']),
-                                                  _line('Data_registro:', _formatDate(item['data_registro'])),
-                                                  _line('Talhão:', item['talhao_nome']),
-                                                  _line('Operador:', item['operador_nome']),
+                                                  _image(
+                                                      item['imagem_base64']
+                                                          ?.toString(),
+                                                      double.infinity,
+                                                      160),
+                                                  const SizedBox(height: 12),
+                                                  _line('Produto:',
+                                                      item['produto']),
+                                                  _line(
+                                                      'Data_registro:',
+                                                      _formatDate(item[
+                                                          'data_registro'])),
+                                                  _line('Talhão:',
+                                                      item['talhao_nome']),
+                                                  _line('Operador:',
+                                                      item['operador_nome']),
                                                   const SizedBox(height: 10),
-                                                  Row(
+                                                  Column(
                                                     children: [
-                                                      Expanded(
+                                                      SizedBox(
+                                                        width: double.infinity,
                                                         child: ButtonComponent(
-                                                          label: 'Mais detalhes',
+                                                          label:
+                                                              'Mais detalhes',
                                                           height: 38,
                                                           borderRadius: 6,
-                                                          backgroundColor: const Color(0xFF24961F),
-                                                          borderColor: const Color(0xFF24961F),
-                                                          onPressed: loteId == null ? null : () => _openDetails(loteId),
+                                                          backgroundColor:
+                                                              const Color(
+                                                                  0xFF24961F),
+                                                          borderColor:
+                                                              const Color(
+                                                                  0xFF24961F),
+                                                          onPressed: loteId ==
+                                                                  null
+                                                              ? null
+                                                              : () =>
+                                                                  _openDetails(
+                                                                      loteId),
                                                         ),
                                                       ),
-                                                      const SizedBox(width: 10),
-                                                      Container(
-                                                        width: 48,
-                                                        height: 38,
-                                                        decoration: BoxDecoration(
-                                                          color: const Color(0xFFFF1D1D),
-                                                          borderRadius: BorderRadius.circular(6),
-                                                        ),
-                                                        child: IconButton(
-                                                          padding: EdgeInsets.zero,
-                                                          onPressed: idLocal == null ? null : () => _removerItem(idLocal),
-                                                          icon: const Icon(Icons.delete, color: Colors.black),
+                                                      const SizedBox(
+                                                          height: 10),
+                                                      SizedBox(
+                                                        width: double.infinity,
+                                                        child: ButtonComponent(
+                                                          label: 'Excluir',
+                                                          height: 38,
+                                                          borderRadius: 6,
+                                                          backgroundColor:
+                                                              const Color(
+                                                                  0xFFFF1D1D),
+                                                          borderColor:
+                                                              const Color(
+                                                                  0xFFFF1D1D),
+                                                          textColor:
+                                                              Colors.black,
+                                                          onPressed: idLocal ==
+                                                                  null
+                                                              ? null
+                                                              : () =>
+                                                                  _removerItem(
+                                                                      idLocal),
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                 ],
+                                              )
+                                            : Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  _image(
+                                                      item['imagem_base64']
+                                                          ?.toString(),
+                                                      imageWidth,
+                                                      imageHeight),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        _line('Produto:',
+                                                            item['produto']),
+                                                        _line(
+                                                            'Data_registro:',
+                                                            _formatDate(item[
+                                                                'data_registro'])),
+                                                        _line(
+                                                            'Talhão:',
+                                                            item[
+                                                                'talhao_nome']),
+                                                        _line(
+                                                            'Operador:',
+                                                            item[
+                                                                'operador_nome']),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child:
+                                                                  ButtonComponent(
+                                                                label:
+                                                                    'Mais detalhes',
+                                                                height: 38,
+                                                                borderRadius: 6,
+                                                                backgroundColor:
+                                                                    const Color(
+                                                                        0xFF24961F),
+                                                                borderColor:
+                                                                    const Color(
+                                                                        0xFF24961F),
+                                                                onPressed: loteId ==
+                                                                        null
+                                                                    ? null
+                                                                    : () => _openDetails(
+                                                                        loteId),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 10),
+                                                            Container(
+                                                              width: 48,
+                                                              height: 38,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: const Color(
+                                                                    0xFFFF1D1D),
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            6),
+                                                              ),
+                                                              child: IconButton(
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .zero,
+                                                                onPressed: idLocal ==
+                                                                        null
+                                                                    ? null
+                                                                    : () => _removerItem(
+                                                                        idLocal),
+                                                                icon: const Icon(
+                                                                    Icons
+                                                                        .delete,
+                                                                    color: Colors
+                                                                        .black),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                );
-                              },
-                            ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ButtonComponent(
+                            label: 'Finalizar compra',
+                            height: 46,
+                            borderRadius: 8,
+                            backgroundColor: const Color(0xFF24961F),
+                            borderColor: const Color(0xFF24961F),
+                            onPressed: items.isEmpty
+                                ? null
+                                : () => _finalizarCompra(
+                                    data.session.localId!.toString()),
                           ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ButtonComponent(
-                      label: 'Finalizar compra',
-                      height: 46,
-                      borderRadius: 8,
-                      backgroundColor: const Color(0xFF24961F),
-                      borderColor: const Color(0xFF24961F),
-                      onPressed: items.isEmpty
-                          ? null
-                          : () => _finalizarCompra(data.session.localId!.toString()),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
-      ),
       ),
     );
   }

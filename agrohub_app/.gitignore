@@ -31,6 +31,10 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/android/build/
+
+# Local QA profiles, screenshots, and temporary assets
+/tmp/
 
 # Symbolication related
 app.*.symbols
