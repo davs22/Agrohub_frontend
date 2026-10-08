@@ -47,7 +47,7 @@ class ButtonComponent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final VoidCallback? action = isDisabled ? null : onPressed;
-    final Color resolvedTextColor = _determineTextColor();
+    final Color resolvedTextColor = _determineTextColor(colorScheme);
     final double resolvedFontSize = _resolveFontSize();
     final EdgeInsets resolvedPadding = _resolvePadding();
 
@@ -91,7 +91,7 @@ class ButtonComponent extends StatelessWidget {
       ),
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.disabled)) {
-          return disabledBackgroundColor ?? const Color(0xFFBDBDBD);
+          return disabledBackgroundColor ?? colorScheme.onSurface.withValues(alpha: 0.12);
         }
         if (type == ButtonType.elevated) {
           return backgroundColor ?? colorScheme.primary;
@@ -105,7 +105,7 @@ class ButtonComponent extends StatelessWidget {
       elevation: const WidgetStatePropertyAll(0),
       side: WidgetStatePropertyAll(
         type == ButtonType.outlined
-            ? BorderSide(color: borderColor ?? componentTextColor, width: 1)
+            ? BorderSide(color: borderColor ?? colorScheme.outline, width: 1)
             : BorderSide.none,
       ),
       shape: WidgetStatePropertyAll(
@@ -149,11 +149,18 @@ class ButtonComponent extends StatelessWidget {
     );
   }
 
-  Color _determineTextColor() {
+  Color _determineTextColor(ColorScheme scheme) {
     if (isDisabled || onPressed == null) {
-      return disabledTextColor ?? componentTextColor.withAlpha(153);
+      return disabledTextColor ?? scheme.onSurface.withValues(alpha: 0.38);
     }
-    return textColor ?? componentTextColor;
+    if (textColor != null) return textColor!;
+    if (type != ButtonType.elevated) return scheme.primary;
+    if (backgroundColor == null || backgroundColor == scheme.primary) {
+      return scheme.onPrimary;
+    }
+    return backgroundColor!.computeLuminance() > 0.179
+        ? Colors.black
+        : Colors.white;
   }
 
   double _resolveFontSize() {

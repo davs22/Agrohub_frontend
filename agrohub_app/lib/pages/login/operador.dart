@@ -35,7 +35,8 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   Future<void> _ensureCompanySession() async {
     final session = await SessionService.loadSession();
-    final isCompany = session != null && (session.role == 'COMERCIO' || session.role == 'FAZENDA');
+    final isCompany = session != null &&
+        (session.role == 'COMERCIO' || session.role == 'FAZENDA');
     if (!mounted || isCompany) {
       return;
     }
@@ -65,7 +66,8 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
 
   Future<void> _validarEEntrar() async {
     final cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
-    final senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+    final senhaError =
+        LoginValidators.validatePassword(_senhaController.text, minLength: 8);
 
     setState(() {
       _cpfError = cpfError;
@@ -81,6 +83,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
     });
 
     final loginLimpo = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final companySession = await SessionService.loadSession();
     final result = await LocalAuthService.authenticateOperator(
       loginLimpo,
       _senhaController.text,
@@ -92,9 +95,13 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       _isLoading = false;
     });
 
-    if (result == null) {
+    if (result == null ||
+        companySession == null ||
+        !LocalAuthService.belongsToCompany(result, companySession)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Credenciais incorretas ou cadastro local não encontrado.')),
+        const SnackBar(
+            content: Text(
+                'Documento ou senha incorretos. Confira os dados e tente novamente.')),
       );
       return;
     }
@@ -105,8 +112,10 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
       tableName: result.tableName,
       flowStage: FlowNavigation.operatorHomeStage,
       localId: result.record['id_local'] as int?,
-      displayName: result.record['nome_completo']?.toString() ?? result.record['nome']?.toString(),
-      documento: result.record['cpf']?.toString() ?? result.record['documento']?.toString(),
+      displayName: result.record['nome_completo']?.toString() ??
+          result.record['nome']?.toString(),
+      documento: result.record['cpf']?.toString() ??
+          result.record['documento']?.toString(),
     );
 
     if (!mounted) return;
@@ -143,7 +152,8 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
         footerWidget: TextButton(
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const NewPassOperadorScreen()),
+            MaterialPageRoute(
+                builder: (context) => const NewPassOperadorScreen()),
           ),
           child: const Text(
             'Esqueci minha senha',
@@ -170,7 +180,8 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
             eventChange: (_) {
               if (_cpfError != null) {
                 setState(() {
-                  _cpfError = LoginValidators.validateCpfOrCnpj(_cpfController.text);
+                  _cpfError =
+                      LoginValidators.validateCpfOrCnpj(_cpfController.text);
                 });
               }
             },
@@ -189,7 +200,7 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
             borderRadius: 20,
             width: double.infinity,
             height: 65,
-            hint: '8 Dígitos',
+            hint: 'Senha de acesso',
             hintColor: colorScheme.onSurface.withValues(alpha: 0.55),
             ephemeral: true,
             controll: _senhaController,
@@ -197,7 +208,9 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
             eventChange: (_) {
               if (_senhaError != null) {
                 setState(() {
-                  _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+                  _senhaError = LoginValidators.validatePassword(
+                      _senhaController.text,
+                      minLength: 8);
                 });
               }
             },

@@ -64,7 +64,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
 
     if (result == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Credenciais incorretas ou cadastro local não encontrado.')),
+        const SnackBar(content: Text('Documento ou senha incorretos. Confira os dados e tente novamente.')),
       );
       return;
     }
@@ -149,7 +149,7 @@ class _LoginComercioScreenState extends State<LoginComercioScreen> {
           borderRadius: 20,
           width: double.infinity,
           height: 65,
-          hint: '8 Dígitos',
+          hint: 'Senha de acesso',
           hintColor: colorScheme.onSurface.withValues(alpha: 0.55),
           ephemeral: true,
           controll: _senhaController,

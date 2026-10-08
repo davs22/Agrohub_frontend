@@ -98,13 +98,34 @@ class InitialSeedData {
         talhaoIds.add(id);
       }
 
-      final loteRows = <Map<String, dynamic>>[];
+      const samplePrices = <double>[
+        145,
+        78,
+        1180,
+        112,
+        92,
+        64,
+        88,
+        72,
+        58,
+        4.5,
+        76,
+        68,
+        96,
+        12,
+        238,
+        56,
+        155,
+        450,
+        215,
+        54,
+      ];
       for (var index = 0; index < _produtos.length; index++) {
         final produto = _produtos[index];
         final operadorId = operadorIds[index % operadorIds.length];
         final talhaoId = talhaoIds[index % talhaoIds.length];
         final imageBase64 = await _assetBase64(produto.assetPath);
-        final loteId = await txn.insert(
+        await txn.insert(
             'lotes',
             _withDates(
               now.subtract(Duration(days: 35 - index)),
@@ -120,54 +141,68 @@ class InitialSeedData {
                 'produto': produto.nome,
                 'quantidade': produto.quantidade,
                 'unidade_medida': produto.unidade,
+                'preco_unitario': samplePrices[index],
                 'status': index % 11 == 0 ? 'RESERVADO' : 'ATIVO',
                 'imagem_base64': imageBase64,
                 'imagem_nome_arquivo': produto.assetPath.split('/').last,
                 'is_published': 1,
               },
             ));
-        loteRows.add({
-          'id_local': loteId,
-          'instancia_id': fazendaId.toString(),
-          'talhao_id': talhaoId.toString(),
-          'operador_id': operadorId.toString(),
-          'codigo_rastreio':
-              'AGH-${DateTime.now().year}-${(index + 1).toString().padLeft(4, '0')}',
-          'produto': produto.nome,
-          'quantidade': produto.quantidade,
-          'unidade_medida': produto.unidade,
-          'imagem_base64': imageBase64,
-          'imagem_nome_arquivo': produto.assetPath.split('/').last,
-          'talhao_nome': _talhoes[index % _talhoes.length].nome,
-          'operador_nome': _operadores[index % _operadores.length].nome,
-        });
       }
 
-      for (var index = 0; index < loteRows.length; index++) {
-        final lote = loteRows[index];
-        final compradorId =
-            operadorIds[(index + 3) % operadorIds.length].toString();
+      const financeSamples = [
+        (
+          'fazendas',
+          fazendaDocumento,
+          'Venda demonstrativa de grãos',
+          'Produção',
+          'RECEITA',
+          2700000
+        ),
+        (
+          'fazendas',
+          fazendaDocumento,
+          'Insumos demonstrativos',
+          'Insumos',
+          'DESPESA',
+          850000
+        ),
+        (
+          'fazendas',
+          fazendaDocumento,
+          'Transporte demonstrativo',
+          'Logística',
+          'DESPESA',
+          370000
+        ),
+        (
+          'comercios',
+          comercioDocumento,
+          'Receita demonstrativa',
+          'Comercialização',
+          'RECEITA',
+          1350000
+        ),
+        (
+          'comercios',
+          comercioDocumento,
+          'Custos demonstrativos',
+          'Operação',
+          'DESPESA',
+          650000
+        ),
+      ];
+      for (final sample in financeSamples) {
         await txn.insert(
-            'carrinho_itens',
-            _withDates(
-              now.subtract(Duration(days: 20 - index)),
-              {
-                'operador_id': compradorId,
-                'lote_id': lote['id_local'].toString(),
-                'instancia_id': lote['instancia_id'],
-                'talhao_id': lote['talhao_id'],
-                'operador_lote_id': lote['operador_id'],
-                'codigo_rastreio': lote['codigo_rastreio'],
-                'produto': lote['produto'],
-                'quantidade': lote['quantidade'],
-                'unidade_medida': lote['unidade_medida'],
-                'imagem_base64': lote['imagem_base64'],
-                'imagem_nome_arquivo': lote['imagem_nome_arquivo'],
-                'talhao_nome': lote['talhao_nome'],
-                'operador_nome': lote['operador_nome'],
-                'status': 'ATIVO',
-              },
-            ));
+            'lancamentos_financeiros',
+            _withDates(now, {
+              'empresa_chave': '${sample.$1}:${sample.$2}',
+              'descricao': sample.$3,
+              'categoria': sample.$4,
+              'tipo': sample.$5,
+              'valor_centavos': sample.$6,
+              'data_movimento': now.toIso8601String(),
+            }));
       }
     });
   }

@@ -1,5 +1,5 @@
 name: agrohub_app
-description: A new Flutter project.
+description: Gestão empresarial de fazendas e comércios com estoque e indicadores financeiros.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -30,13 +30,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   cupertino_icons: ^1.0.2
   flutter_svg: ^2.0.10+1
   http: ^1.6.0
   file_picker: ^8.1.2
   shared_preferences: ^2.5.5
   sqflite: ^2.4.2+1
-  sqflite_common_ffi_web: ^0.4.5+4
+  sqflite_common_ffi_web: 1.1.1
   path_provider: ^2.1.5
   path: ^1.9.1
 
@@ -51,6 +54,7 @@ flutter:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  sqflite_common_ffi: ^2.4.0
   flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to

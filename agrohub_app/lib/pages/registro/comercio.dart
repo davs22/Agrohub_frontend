@@ -1,7 +1,7 @@
 import 'package:agrohub_app/components/base_register_template.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
-import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/view_models/company_registration_view_model.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +14,7 @@ class RegisterComercioScreen extends StatefulWidget {
 }
 
 class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
+  final _viewModel = CompanyRegistrationViewModel();
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _ruaController = TextEditingController();
@@ -35,6 +36,7 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
 
   @override
   void dispose() {
+    _viewModel.dispose();
     _nomeController.dispose();
     _documentoController.dispose();
     _ruaController.dispose();
@@ -104,18 +106,19 @@ class _RegisterComercioScreenState extends State<RegisterComercioScreen> {
       'status': 'ATIVO',
     };
 
-    await DatabaseHelper.instance.salvarOuAtualizarPorColunaUnica(
-      'comercios',
-      colunaUnica: 'documento',
-      valorUnico: documentoLimpo,
-      dados: dadosLocais,
-    );
+    final saved = await _viewModel.register('comercios', dadosLocais);
 
     if (!mounted) return;
 
     setState(() {
       _isLoading = false;
     });
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_viewModel.error ?? 'Não foi possível cadastrar o comércio.')),
+      );
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Comércio salvo no banco local.')),

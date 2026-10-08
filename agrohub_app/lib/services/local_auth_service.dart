@@ -1,4 +1,5 @@
 import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/services/session_service.dart';
 
 class LocalAuthResult {
   final String role;
@@ -13,6 +14,20 @@ class LocalAuthResult {
 }
 
 class LocalAuthService {
+  static bool belongsToCompany(LocalAuthResult result, SessionData company) {
+    if (!company.isCompanySession ||
+        company.tableName !=
+            (company.role == 'FAZENDA' ? 'fazendas' : 'comercios')) {
+      return false;
+    }
+    final ownerDocument = result.tableName == 'operadores'
+        ? result.record['documento_admin']
+        : result.record['documento'];
+    return ownerDocument?.toString() == company.documento &&
+        (result.tableName == 'operadores' ||
+            result.tableName == company.tableName);
+  }
+
   static Future<LocalAuthResult?> _authenticateCompanyOperator(
     String tabela,
     String login,
@@ -88,12 +103,14 @@ class LocalAuthService {
       );
     }
 
-    final comercio = await _authenticateCompanyOperator('comercios', login, password);
+    final comercio =
+        await _authenticateCompanyOperator('comercios', login, password);
     if (comercio != null) {
       return comercio;
     }
 
-    final fazenda = await _authenticateCompanyOperator('fazendas', login, password);
+    final fazenda =
+        await _authenticateCompanyOperator('fazendas', login, password);
     if (fazenda != null) {
       return fazenda;
     }

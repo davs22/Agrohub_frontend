@@ -8,6 +8,8 @@ class LoteEntity {
   final String? codigoRastreio;
   final String produto;
   final int quantidade;
+  final double precoUnitario;
+  final DateTime? dataValidade;
   final String unidadeMedida;
   final String status;
   final String? imagemBase64;
@@ -27,6 +29,8 @@ class LoteEntity {
     this.codigoRastreio,
     required this.produto,
     required this.quantidade,
+    this.precoUnitario = 0,
+    this.dataValidade,
     required this.unidadeMedida,
     required this.status,
     this.imagemBase64,
@@ -48,9 +52,13 @@ class LoteEntity {
       codigoRastreio: json['codigo_rastreio']?.toString(),
       produto: json['produto']?.toString() ?? '',
       quantidade: _toInt(json['quantidade']) ?? 0,
+      precoUnitario:
+          double.tryParse(json['preco_unitario']?.toString() ?? '') ?? 0,
+      dataValidade: _toDateTime(json['data_validade']),
       unidadeMedida: json['unidade_medida']?.toString() ?? '',
       status: json['status']?.toString() ?? 'ATIVO',
-      imagemBase64: json['imagem_base64']?.toString() ?? json['imagem_url']?.toString(),
+      imagemBase64:
+          json['imagem_base64']?.toString() ?? json['imagem_url']?.toString(),
       imagemNomeArquivo: json['imagem_nome_arquivo']?.toString(),
       isPublished: _toInt(json['is_published']) == 1,
       dataRegistro: _toDateTime(json['data_registro']),
@@ -69,6 +77,8 @@ class LoteEntity {
       'codigo_rastreio': codigoRastreio,
       'produto': produto,
       'quantidade': quantidade,
+      'preco_unitario': precoUnitario,
+      'data_validade': dataValidade?.toIso8601String(),
       'unidade_medida': unidadeMedida,
       'status': status,
       'imagem_base64': imagemBase64,
@@ -90,6 +100,9 @@ class LoteEntity {
     String? codigoRastreio,
     String? produto,
     int? quantidade,
+    double? precoUnitario,
+    DateTime? dataValidade,
+    bool clearDataValidade = false,
     String? unidadeMedida,
     String? status,
     String? imagemBase64,
@@ -109,6 +122,9 @@ class LoteEntity {
       codigoRastreio: codigoRastreio ?? this.codigoRastreio,
       produto: produto ?? this.produto,
       quantidade: quantidade ?? this.quantidade,
+      precoUnitario: precoUnitario ?? this.precoUnitario,
+      dataValidade:
+          clearDataValidade ? null : dataValidade ?? this.dataValidade,
       unidadeMedida: unidadeMedida ?? this.unidadeMedida,
       status: status ?? this.status,
       imagemBase64: imagemBase64 ?? this.imagemBase64,

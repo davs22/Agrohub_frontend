@@ -1,307 +1,169 @@
 import 'package:agrohub_app/components/app_bar.dart';
-import 'package:agrohub_app/components/button.dart';
+import 'package:agrohub_app/components/data_grid.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
-import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/database/database_helper.dart';
-import 'package:agrohub_app/pages/view/carrinho.dart';
-import 'package:agrohub_app/services/local_cart_service.dart';
-import 'package:agrohub_app/services/local_image_service.dart';
-import 'package:agrohub_app/services/session_service.dart';
-import 'package:agrohub_app/utils/flow_navigation.dart';
+import 'package:agrohub_app/components/inventory_card.dart';
+import 'package:agrohub_app/pages/edit/lote.dart';
+import 'package:agrohub_app/repositories/inventory_repository.dart';
+import 'package:agrohub_app/utils/display_formatters.dart';
 import 'package:flutter/material.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  final int idLocal;
-
   const ProductDetailScreen({super.key, required this.idLocal});
-
+  final int idLocal;
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  late Future<Map<String, dynamic>?> _future;
+  final repository = const InventoryRepository();
+  late Future<Map<String, dynamic>?> future;
+  bool canManage = false;
 
   @override
   void initState() {
     super.initState();
-    _future = _loadData();
+    future = _load();
   }
 
-  Future<Map<String, dynamic>?> _loadData() async {
-    final lote = await DatabaseHelper.instance.buscarPorId('lotes', widget.idLocal);
-    if (lote == null) {
-      return null;
+  Future<Map<String, dynamic>?> _load() async {
+    canManage = await repository.canManage();
+    return repository.lot(widget.idLocal);
+  }
+
+  Future<void> _edit() async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => EditLoteScreen(idLocal: widget.idLocal)));
+    if (mounted) {
+      setState(() {
+        future = _load();
+      });
     }
-
-    final talhaoId = lote['talhao_id']?.toString();
-    final operadorId = lote['operador_id']?.toString();
-
-    String? talhaoNome;
-    String? operadorNome;
-    String? operadorTelefone;
-    String? operadorEmail;
-
-    if (talhaoId != null && talhaoId.isNotEmpty) {
-      final talhao = await DatabaseHelper.instance.buscarPorColuna(
-        'talhoes',
-        'id_local',
-        talhaoId,
-      );
-      talhaoNome = talhao?['nome']?.toString();
-    }
-
-    if (operadorId != null && operadorId.isNotEmpty) {
-      final operador = await DatabaseHelper.instance.buscarPorColuna(
-        'operadores',
-        'id_local',
-        operadorId,
-      );
-      operadorNome = operador?['nome_completo']?.toString();
-      operadorTelefone = operador?['telefone']?.toString();
-      operadorEmail = operador?['email']?.toString();
-    }
-
-    final session = await SessionService.loadSession();
-    final instanciaNome = session?.displayName ?? 'AgroHub';
-
-    return {
-      ...lote,
-      'talhao_nome': talhaoNome,
-      'operador_nome': operadorNome,
-      'operador_telefone': operadorTelefone,
-      'operador_email': operadorEmail,
-      'instancia_nome': instanciaNome,
-    };
-  }
-
-  String _formatValue(dynamic value) {
-    if (value == null) return '-';
-    final text = value.toString().trim();
-    return text.isEmpty ? '-' : text;
-  }
-
-  String _formatDate(dynamic value) {
-    final text = value?.toString();
-    if (text == null || text.isEmpty) return '-';
-    final parsed = DateTime.tryParse(text);
-    if (parsed == null) return text;
-    return parsed.toLocal().toString().split('.').first;
-  }
-
-  Widget _field(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        '$label ${_formatValue(value)}',
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-
-  Widget _image(String? base64Value) {
-    final bytes = LocalImageService.decodeImage(base64Value);
-    if (bytes == null) {
-      return Container(
-        width: double.infinity,
-        height: 180,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(Icons.image_not_supported, size: 54),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Image.memory(
-        bytes,
-        width: double.infinity,
-        height: 180,
-        fit: BoxFit.cover,
-      ),
-    );
-  }
-
-  Future<void> _adicionarAoCarrinho(Map<String, dynamic> lote) async {
-    final session = await SessionService.loadSession();
-    final operadorId = session?.localId?.toString();
-    if (operadorId == null) {
-      return;
-    }
-
-    final added = await LocalCartService.adicionarAoCarrinho(
-      operadorId: operadorId,
-      lote: lote,
-    );
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          added ? 'Produto adicionado ao carrinho.' : 'Esse produto já está no carrinho.',
-        ),
-      ),
-    );
-  }
-
-  void _openCart() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const CarrinhoScreen()),
-    );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return FlowBackGuard(
-      child: Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
-            ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Operador',
-        visibleOptions: {
-          DrawerMenuOption.homeOperador,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.talhoes,
-          DrawerMenuOption.carrinho,
-          DrawerMenuOption.perfilOperador,
-          DrawerMenuOption.novaSenhaOperador,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: FutureBuilder<Map<String, dynamic>?>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final lote = snapshot.data;
-            if (lote == null) {
-              return const Center(
-                child: Text(
-                  'Produto nao encontrado.',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              );
-            }
-
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const TextComponent(
-                      text: 'Detalhes do produto',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    const SizedBox(height: 16),
-                    _image(lote['imagem_base64']?.toString()),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.black),
-                      ),
-                      child: Column(
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBarComponent(
+            title: 'Detalhes do produto',
+            automaticallyImplyLeading: true,
+            actions: [
+              Builder(
+                  builder: (context) => IconButton(
+                      tooltip: 'Abrir menu',
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                      icon: const Icon(Icons.menu)))
+            ]),
+        endDrawer: const DrawerMenuComponent(headerTitle: 'AgroHub'),
+        body: SafeArea(
+            child: FutureBuilder<Map<String, dynamic>?>(
+                future: future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text('Não foi possível carregar o produto.'),
+                      TextButton(
+                          onPressed: () => setState(() {
+                                future = _load();
+                              }),
+                          child: const Text('Tentar novamente')),
+                    ]));
+                  }
+                  final record = snapshot.data;
+                  if (record == null) {
+                    return const Center(
+                        child: Text('Produto não encontrado nesta empresa.'));
+                  }
+                  final quantity =
+                      num.tryParse(record['quantidade'].toString()) ?? 0;
+                  final price =
+                      num.tryParse(record['preco_unitario'].toString()) ?? 0;
+                  return SingleChildScrollView(
+                      child: Center(
+                          child: Container(
+                    constraints: const BoxConstraints(maxWidth: 850),
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _field('Id_lote:', lote['id_local']),
-                          _field('Id_instância:', lote['instancia_id']),
-                          _field('Id_talhão:', lote['talhao_id']),
-                          _field('Id_operador:', lote['operador_id']),
-                          _field('Código_rastreio:', lote['codigo_rastreio']),
-                          _field('Produto:', lote['produto']),
-                          _field('Quantidade:', lote['quantidade']),
-                          _field('Unidade_medida:', lote['unidade_medida']),
-                          _field('Data_registro:', _formatDate(lote['data_registro'])),
-                          _field('Nome_instância:', lote['instancia_nome']),
-                          _field('Talhão:', lote['talhao_nome']),
-                          _field('Operador:', lote['operador_nome']),
-                          _field('Telefone:', lote['operador_telefone']),
-                          _field('Email:', lote['operador_email']),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.black),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Coordenadas',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 10),
-                          _field('Latitude:', lote['latitude']),
-                          _field('Longitude:', lote['longitude']),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ButtonComponent(
-                            label: 'Adicionar ao carrinho',
-                            height: 46,
-                            borderRadius: 8,
-                            backgroundColor: const Color(0xFF24961F),
-                            borderColor: const Color(0xFF24961F),
-                            onPressed: () => _adicionarAoCarrinho(lote),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 62,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFD700),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.black),
-                          ),
-                          child: IconButton(
-                            onPressed: _openCart,
-                            icon: const Icon(Icons.shopping_cart, color: Colors.black),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-      ),
-    );
-  }
+                          InventoryImage(
+                              base64: record['imagem_base64']?.toString(),
+                              height: 260),
+                          const SizedBox(height: 24),
+                          Text(DisplayFormatters.value(record['produto']),
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
+                          const SizedBox(height: 8),
+                          Text(
+                              price > 0
+                                  ? '${DisplayFormatters.currency(price)} por ${DisplayFormatters.value(record['unidade_medida'])}'
+                                  : 'Preço não definido',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary)),
+                          const SizedBox(height: 24),
+                          Card(
+                              child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        DataLabel('Quantidade em estoque',
+                                            '${DisplayFormatters.number(quantity)} ${DisplayFormatters.value(record['unidade_medida'])}',
+                                            icon: Icons.inventory_2_outlined),
+                                        DataLabel(
+                                            'Valor potencial do lote',
+                                            DisplayFormatters.currency(
+                                                price * quantity)),
+                                        DataLabel(
+                                            'Situação',
+                                            DisplayFormatters.status(
+                                                record['status'])),
+                                        DataLabel(
+                                            'Validade',
+                                            DisplayFormatters.date(
+                                                record['data_validade'])),
+                                        DataLabel(
+                                            'Talhão de origem',
+                                            DisplayFormatters.value(
+                                                record['talhao_nome'])),
+                                        DataLabel(
+                                            'Operador responsável',
+                                            DisplayFormatters.value(
+                                                record['operador_nome'])),
+                                        if (record['codigo_rastreio'] != null)
+                                          DataLabel(
+                                              'Código de rastreio',
+                                              DisplayFormatters.value(
+                                                  record['codigo_rastreio'])),
+                                        DataLabel(
+                                            'Cadastrado em',
+                                            DisplayFormatters.date(
+                                                record['data_registro'])),
+                                        DataLabel(
+                                            'Última atualização',
+                                            DisplayFormatters.date(
+                                                record['data_atualizacao'])),
+                                      ]))),
+                          if (canManage) ...[
+                            const SizedBox(height: 20),
+                            FilledButton.icon(
+                                onPressed: _edit,
+                                icon: const Icon(Icons.edit_outlined),
+                                label: const Text('Editar lote'))
+                          ],
+                        ]),
+                  )));
+                })),
+      );
 }

@@ -1,7 +1,7 @@
 import 'package:agrohub_app/components/base_register_template.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
-import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/view_models/company_registration_view_model.dart';
 import 'package:agrohub_app/utils/login_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +14,7 @@ class RegisterFazendaScreen extends StatefulWidget {
 }
 
 class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
+  final _viewModel = CompanyRegistrationViewModel();
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _documentoController = TextEditingController();
   final TextEditingController _hectaresController = TextEditingController();
@@ -37,6 +38,7 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
 
   @override
   void dispose() {
+    _viewModel.dispose();
     _nomeController.dispose();
     _documentoController.dispose();
     _hectaresController.dispose();
@@ -116,18 +118,19 @@ class _RegisterFazendaScreenState extends State<RegisterFazendaScreen> {
       'status': 'ATIVO',
     };
 
-    await DatabaseHelper.instance.salvarOuAtualizarPorColunaUnica(
-      'fazendas',
-      colunaUnica: 'documento',
-      valorUnico: documentoLimpo,
-      dados: dadosLocais,
-    );
+    final saved = await _viewModel.register('fazendas', dadosLocais);
 
     if (!mounted) return;
 
     setState(() {
       _isLoading = false;
     });
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_viewModel.error ?? 'Não foi possível cadastrar a fazenda.')),
+      );
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Fazenda salva no banco local.')),

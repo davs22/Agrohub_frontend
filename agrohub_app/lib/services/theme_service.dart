@@ -20,6 +20,7 @@ class ThemeService {
   static ThemeMode _modeFromString(String? value) {
     return switch (value) {
       'dark' => ThemeMode.dark,
+      'system' => ThemeMode.system,
       _ => ThemeMode.light,
     };
   }
@@ -28,7 +29,7 @@ class ThemeService {
     return switch (mode) {
       ThemeMode.dark => 'dark',
       ThemeMode.light => 'light',
-      ThemeMode.system => 'light',
+      ThemeMode.system => 'system',
     };
   }
 }

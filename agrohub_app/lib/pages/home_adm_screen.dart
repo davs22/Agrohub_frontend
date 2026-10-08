@@ -1,14 +1,13 @@
 import 'package:agrohub_app/components/app_bar.dart';
-import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
-import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/pages/edit/empresa.dart';
+import 'package:agrohub_app/pages/view/finance_screen.dart';
 import 'package:agrohub_app/pages/view/lotes.dart';
 import 'package:agrohub_app/pages/view/marketplace.dart';
 import 'package:agrohub_app/pages/view/operador.dart';
 import 'package:agrohub_app/pages/view/talhoes.dart';
-import 'package:agrohub_app/services/session_service.dart';
-import 'package:agrohub_app/utils/responsive_layout.dart';
+import 'package:agrohub_app/utils/display_formatters.dart';
+import 'package:agrohub_app/view_models/dashboard_view_model.dart';
 import 'package:flutter/material.dart';
 
 class HomeAdmScreen extends StatefulWidget {
@@ -18,313 +17,297 @@ class HomeAdmScreen extends StatefulWidget {
   State<HomeAdmScreen> createState() => _HomeAdmScreenState();
 }
 
-class _HomeDashboardData {
-  final SessionData session;
-  final Map<String, dynamic>? userRecord;
-  final int totalOperadores;
-  final int totalTalhoes;
-  final int totalLotes;
-  final int totalMarketplace;
-
-  const _HomeDashboardData({
-    required this.session,
-    required this.userRecord,
-    required this.totalOperadores,
-    required this.totalTalhoes,
-    required this.totalLotes,
-    required this.totalMarketplace,
-  });
-}
-
 class _HomeAdmScreenState extends State<HomeAdmScreen> {
-  late Future<_HomeDashboardData?> _dashboardFuture;
+  final _viewModel = DashboardViewModel();
 
   @override
   void initState() {
     super.initState();
-    _dashboardFuture = _loadDashboard();
-  }
-
-  Future<_HomeDashboardData?> _loadDashboard() async {
-    final session = await SessionService.loadSession();
-    if (session == null) {
-      return null;
-    }
-
-    final userRecord = await DatabaseHelper.instance.buscarPorColuna(
-      session.tableName,
-      session.tableName == 'operadores' ? 'cpf' : 'documento',
-      session.login,
-    );
-
-    final totalOperadores = await DatabaseHelper.instance.contarRegistros('operadores');
-    final totalTalhoes = await DatabaseHelper.instance.contarRegistros('talhoes');
-    final totalLotes = await DatabaseHelper.instance.contarRegistros('lotes');
-    final totalMarketplace = await DatabaseHelper.instance.contarRegistros(
-      'lotes',
-      where: 'is_published = ?',
-      whereArgs: [1],
-    );
-
-    return _HomeDashboardData(
-      session: session,
-      userRecord: userRecord,
-      totalOperadores: totalOperadores,
-      totalTalhoes: totalTalhoes,
-      totalLotes: totalLotes,
-      totalMarketplace: totalMarketplace,
-    );
-  }
-
-  String _formatValue(dynamic value) {
-    if (value == null) return '-';
-    final text = value.toString().trim();
-    return text.isEmpty ? '-' : text;
-  }
-
-  String _formatDate(dynamic value) {
-    final text = value?.toString();
-    if (text == null || text.isEmpty) return '-';
-    final parsed = DateTime.tryParse(text);
-    if (parsed == null) return text;
-    return parsed.toLocal().toString().split('.').first;
-  }
-
-  Widget _buildUserRow(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        '$label ${_formatValue(value)}',
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-
-  Widget _summaryCard(String label, int value, double width) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value.toString(),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _quickAction(String label, VoidCallback onPressed) {
-    return ButtonComponent(
-      label: label,
-      width: double.infinity,
-      height: 46,
-      borderRadius: 4,
-      backgroundColor: const Color(0xFF24961F),
-      borderColor: const Color(0xFF24961F),
-      onPressed: onPressed,
-    );
-  }
-
-  void _openOperadores() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const ViewOperadorScreen()),
-      (route) => route.isFirst,
-    );
-  }
-
-  void _openTalhoes() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const ViewTalhaoScreen()),
-      (route) => route.isFirst,
-    );
-  }
-
-  void _openLotes() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const ViewLoteScreen()),
-      (route) => route.isFirst,
-    );
-  }
-
-  void _openMarketplace() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
-      (route) => route.isFirst,
-    );
-  }
-
-  void _openEditOperatorFlow() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const ViewOperadorScreen()),
-      (route) => route.isFirst,
-    );
+    _viewModel.load();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarComponent(
-        title: 'AgroHub',
-        automaticallyImplyLeading: false,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              icon: const Icon(Icons.menu),
-            ),
-          ),
-        ],
-      ),
-      endDrawer: const DrawerMenuComponent(
-        headerTitle: 'Administrador',
-        visibleOptions: {
-          DrawerMenuOption.homeAdmin,
-          DrawerMenuOption.listaOperadores,
-          DrawerMenuOption.registrarOperador,
-          DrawerMenuOption.editarOperador,
-          DrawerMenuOption.registrarTalhao,
-          DrawerMenuOption.editarTalhao,
-          DrawerMenuOption.registrarLote,
-          DrawerMenuOption.editarLote,
-          DrawerMenuOption.marketplace,
-          DrawerMenuOption.configuracoes,
-          DrawerMenuOption.logout,
-        },
-      ),
-      body: SafeArea(
-        child: FutureBuilder<_HomeDashboardData?>(
-          future: _dashboardFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            }
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
-            final data = snapshot.data;
-            if (data == null) {
-              return const Center(
-                child: Text(
-                  'Sessão não encontrada. Faça login novamente.',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              );
-            }
+  Future<void> _open(Widget page) async {
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    if (mounted) await _viewModel.load();
+  }
 
-            final user = data.userRecord ?? const {};
-            final isOperator = data.session.role == 'OPERADOR';
-            final isAdmin = data.session.role == 'COMERCIO' || data.session.role == 'FAZENDA';
-            final isBusiness = !isOperator;
+  Widget _shortcut(String label, IconData icon, Widget page) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ActionChip(
+          avatar: Icon(icon, size: 18),
+          label: Text(label),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          onPressed: () => _open(page),
+        ),
+      );
 
-            final screenWidth = MediaQuery.of(context).size.width;
-            final contentWidth = ResponsiveLayout.homeMaxWidth(screenWidth);
-            final summaryWidth = ResponsiveLayout.summaryCardWidth(screenWidth);
-
-            return Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: contentWidth),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ListView(
-                    children: [
-                  const TextComponent(
-                    text: 'Painel do administrador',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _summaryCard('Operadores', data.totalOperadores, summaryWidth),
-                      _summaryCard('Talhões', data.totalTalhoes, summaryWidth),
-                      _summaryCard('Lotes', data.totalLotes, summaryWidth),
-                      _summaryCard('Marketplace', data.totalMarketplace, summaryWidth),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Dados do administrador',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildUserRow('Nome:', user['nome'] ?? user['nome_completo']),
-                        _buildUserRow('Documento:', user['documento'] ?? user['cpf']),
-                        if (isBusiness) _buildUserRow('Hectares totais:', user['hectares']),
-                        if (isBusiness) _buildUserRow('Latitude:', user['latitude']),
-                        if (isBusiness) _buildUserRow('Longitude:', user['longitude']),
-                        if (user['cep'] != null) _buildUserRow('Cep:', user['cep']),
-                        if (user['rua'] != null) _buildUserRow('Rua:', user['rua']),
-                        _buildUserRow('Telefone:', user['telefone']),
-                        _buildUserRow('Email:', user['email']),
-                        _buildUserRow('Status:', user['status']),
-                        _buildUserRow('Data_registro:', _formatDate(user['data_registro'])),
-                        _buildUserRow('Data_atualização:', _formatDate(user['data_atualizacao'])),
-                        const SizedBox(height: 16),
-                        if (isAdmin)
-                          SizedBox(
-                            width: double.infinity,
-                            child: ButtonComponent(
-                              label: 'Editar operador',
-                              height: 46,
-                              borderRadius: 4,
-                              backgroundColor: const Color(0xFF24961F),
-                              borderColor: const Color(0xFF24961F),
-                              onPressed: _openEditOperatorFlow,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Atalhos rápidos',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  _quickAction('Ver operadores', _openOperadores),
-                  const SizedBox(height: 8),
-                  _quickAction('Ver talhões', _openTalhoes),
-                  const SizedBox(height: 8),
-                  _quickAction('Ver lotes', _openLotes),
-                  const SizedBox(height: 8),
-                  _quickAction('Abrir marketplace', _openMarketplace),
-                ],
-                  ),
-                ),
-              ),
-            );
-          },
+  Widget _metric(String label, String value, IconData icon,
+      {VoidCallback? onTap}) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, color: colors.primary, size: 25),
+            const SizedBox(height: 10),
+            Text(value,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 5),
+            Text(label,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colors.onSurfaceVariant)),
+          ]),
         ),
       ),
     );
   }
+
+  Widget _metricRow(List<Widget> cards) =>
+      LayoutBuilder(builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 720 ? 4 : 2;
+        final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
+        return Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
+          children:
+              cards.map((card) => SizedBox(width: width, child: card)).toList(),
+        );
+      });
+
+  Widget _field(String label, String value, double width) => SizedBox(
+        width: width,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 4),
+          SelectableText(value, style: Theme.of(context).textTheme.bodyLarge),
+        ]),
+      );
+
+  Widget _companyCard() {
+    final company = _viewModel.company!;
+    final record = company.record;
+    final fields = <String, String>{
+      'Nome': company.name,
+      'CPF / CNPJ': DisplayFormatters.document(company.document),
+      if (company.isFarm)
+        'Área total':
+            '${DisplayFormatters.number(num.tryParse('${record['hectares']}') ?? 0)} ha',
+      if (company.isFarm)
+        'Localização':
+            '${DisplayFormatters.value(record['latitude'])}, ${DisplayFormatters.value(record['longitude'])}',
+      if (!company.isFarm) 'Endereço': DisplayFormatters.value(record['rua']),
+      if (!company.isFarm) 'CEP': DisplayFormatters.cep(record['cep']),
+      'Telefone': DisplayFormatters.phone(record['telefone']),
+      'E-mail': DisplayFormatters.value(record['email']),
+      'Situação': DisplayFormatters.status(record['status']),
+      'Cadastro realizado em': DisplayFormatters.date(record['data_registro']),
+      'Última atualização': DisplayFormatters.date(record['data_atualizacao']),
+    };
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(company.isFarm ? Icons.agriculture : Icons.storefront,
+                color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Text(
+                    company.isFarm ? 'Dados da fazenda' : 'Dados do comércio',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700))),
+          ]),
+          const SizedBox(height: 24),
+          LayoutBuilder(builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 760
+                ? 3
+                : constraints.maxWidth >= 440
+                    ? 2
+                    : 1;
+            final width = (constraints.maxWidth - (columns - 1) * 24) / columns;
+            return Wrap(
+                spacing: 24,
+                runSpacing: 20,
+                children: fields.entries
+                    .map((entry) => _field(entry.key, entry.value, width))
+                    .toList());
+          }),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+              onPressed: () => _open(EditEmpresaScreen(company: company)),
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Editar')),
+        ]),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBarComponent(
+          title: 'AgroHub',
+          automaticallyImplyLeading: false,
+          actions: [
+            Builder(
+                builder: (context) => IconButton(
+                      tooltip: 'Abrir menu',
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                      icon: const Icon(Icons.menu),
+                    ))
+          ],
+        ),
+        endDrawer: const DrawerMenuComponent(headerTitle: 'Administrador'),
+        body: SafeArea(
+            child: ListenableBuilder(
+          listenable: _viewModel,
+          builder: (context, _) {
+            if (_viewModel.loading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (_viewModel.error != null) {
+              return Center(
+                  child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        Text(_viewModel.error!, textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                            onPressed: _viewModel.load,
+                            child: const Text('Tentar novamente')),
+                      ])));
+            }
+            final summary = _viewModel.summary;
+            return RefreshIndicator(
+              onRefresh: _viewModel.load,
+              child: Center(
+                  child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1240),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(children: [
+                          _shortcut('Operadores', Icons.groups_outlined,
+                              const ViewOperadorScreen()),
+                          _shortcut('Talhões', Icons.grid_view_rounded,
+                              const ViewTalhaoScreen()),
+                          _shortcut('Lotes', Icons.inventory_2_outlined,
+                              const ViewLoteScreen()),
+                          _shortcut('Catálogo', Icons.storefront_outlined,
+                              const MarketplaceScreen()),
+                          _shortcut('Financeiro', Icons.insights_outlined,
+                              const FinanceScreen()),
+                        ])),
+                    const SizedBox(height: 22),
+                    _metricRow([
+                      _metric('Operadores', '${_viewModel.operatorCount}',
+                          Icons.groups_outlined,
+                          onTap: () => _open(const ViewOperadorScreen())),
+                      _metric('Talhões', '${_viewModel.plotCount}',
+                          Icons.grid_view_rounded,
+                          onTap: () => _open(const ViewTalhaoScreen())),
+                      _metric('Lotes', '${_viewModel.lotCount}',
+                          Icons.inventory_2_outlined,
+                          onTap: () => _open(const ViewLoteScreen())),
+                      _metric('Em destaque', '${_viewModel.catalogCount}',
+                          Icons.storefront_outlined,
+                          onTap: () => _open(const MarketplaceScreen())),
+                    ]),
+                    const SizedBox(height: 24),
+                    _companyCard(),
+                    const SizedBox(height: 28),
+                    Text('Resumo financeiro do mês',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Text('Receitas e despesas registradas pela empresa.',
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant)),
+                    const SizedBox(height: 16),
+                    _metricRow([
+                      _metric(
+                          'Receitas',
+                          DisplayFormatters.currency(summary.income),
+                          Icons.trending_up),
+                      _metric(
+                          'Despesas',
+                          DisplayFormatters.currency(summary.expense),
+                          Icons.trending_down),
+                      _metric(
+                          'Resultado',
+                          DisplayFormatters.currency(summary.balance),
+                          Icons.account_balance_wallet_outlined),
+                      _metric(
+                          'Margem do resultado',
+                          summary.margin == null
+                              ? '—'
+                              : '${DisplayFormatters.number(summary.margin!)}%',
+                          Icons.percent),
+                    ]),
+                    const SizedBox(height: 16),
+                    Card(
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      'Estoque a preço de venda: ${DisplayFormatters.currency(_viewModel.stockValue)}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                      '${_viewModel.expiringLots} lote(s) com validade nos próximos 30 dias.'),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                      'O estoque é uma estimativa com os preços cadastrados. O resultado é a diferença entre receitas e despesas lançadas.',
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant)),
+                                  const SizedBox(height: 16),
+                                  OutlinedButton.icon(
+                                      onPressed: () =>
+                                          _open(const FinanceScreen()),
+                                      icon: const Icon(Icons.insights),
+                                      label:
+                                          const Text('Gerenciar financeiro')),
+                                ]))),
+                  ],
+                ),
+              )),
+            );
+          },
+        )),
+      );
 }

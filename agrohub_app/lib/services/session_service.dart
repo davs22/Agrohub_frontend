@@ -20,6 +20,18 @@ class SessionData {
     this.documento,
     this.token,
   });
+
+  bool get isCompanySession => role == 'COMERCIO' || role == 'FAZENDA';
+
+  bool get isAdmin =>
+      isCompanySession && flowStage == 'ADMIN_HOME';
+
+  bool get isOperator =>
+      (role == 'OPERADOR' && tableName == 'operadores') ||
+      (isCompanySession && flowStage == 'OPERATOR_HOME');
+
+  String get profileKey =>
+      '${isAdmin ? 'admin' : 'operator'}:$tableName:${login.trim()}';
 }
 
 class SessionService {

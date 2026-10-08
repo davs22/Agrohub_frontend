@@ -34,7 +34,8 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
 
   Future<void> _ensureCompanySession() async {
     final session = await SessionService.loadSession();
-    final isCompany = session != null && (session.role == 'COMERCIO' || session.role == 'FAZENDA');
+    final isCompany = session != null &&
+        (session.role == 'COMERCIO' || session.role == 'FAZENDA');
     if (!mounted || isCompany) {
       return;
     }
@@ -63,8 +64,10 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
   }
 
   Future<void> _validarEEntrar() async {
-    final documentoError = LoginValidators.validateCpfOrCnpj(_documentoController.text);
-    final senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+    final documentoError =
+        LoginValidators.validateCpfOrCnpj(_documentoController.text);
+    final senhaError =
+        LoginValidators.validatePassword(_senhaController.text, minLength: 8);
 
     setState(() {
       _documentoError = documentoError;
@@ -79,7 +82,9 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
       _isLoading = true;
     });
 
-    final loginLimpo = _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final loginLimpo =
+        _documentoController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final companySession = await SessionService.loadSession();
     final result = await LocalAuthService.authenticateAdmin(
       loginLimpo,
       _senhaController.text,
@@ -91,9 +96,13 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
       _isLoading = false;
     });
 
-    if (result == null) {
+    if (result == null ||
+        companySession == null ||
+        !LocalAuthService.belongsToCompany(result, companySession)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Credenciais incorretas ou cadastro local não encontrado.')),
+        const SnackBar(
+            content: Text(
+                'Documento ou senha incorretos. Confira os dados e tente novamente.')),
       );
       return;
     }
@@ -155,7 +164,8 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
             errorText: _documentoError,
             eventChange: (_) {
               setState(() {
-                _documentoError = LoginValidators.validateCpfOrCnpj(_documentoController.text);
+                _documentoError = LoginValidators.validateCpfOrCnpj(
+                    _documentoController.text);
               });
             },
           ),
@@ -173,7 +183,7 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
             borderRadius: 20,
             width: double.infinity,
             height: 65,
-            hint: '8 Dígitos',
+            hint: 'Senha de acesso',
             hintColor: colorScheme.onSurface.withValues(alpha: 0.55),
             ephemeral: true,
             controll: _senhaController,
@@ -181,7 +191,9 @@ class _LoginAdmScreenState extends State<LoginAdmScreen> {
             eventChange: (_) {
               if (_senhaError != null) {
                 setState(() {
-                  _senhaError = LoginValidators.validatePassword(_senhaController.text, minLength: 8);
+                  _senhaError = LoginValidators.validatePassword(
+                      _senhaController.text,
+                      minLength: 8);
                 });
               }
             },

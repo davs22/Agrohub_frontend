@@ -1,27 +1,24 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 
 import 'initial_seed_data.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static Database? _database;
+  static Future<Database>? _databaseFuture;
 
   DatabaseHelper._init();
 
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('agrohub_offline.db');
-    return _database!;
-  }
+  Future<Database> get database =>
+      _databaseFuture ??= _initDB('agrohub_offline.db');
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+    final path = kIsWeb ? filePath : join(await getDatabasesPath(), filePath);
 
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
       onOpen: InitialSeedData.seed,
@@ -109,6 +106,8 @@ class DatabaseHelper {
         produto TEXT NOT NULL,
         quantidade INTEGER NOT NULL,
         unidade_medida TEXT NOT NULL,
+        preco_unitario REAL NOT NULL DEFAULT 0,
+        data_validade TEXT,
         status TEXT NOT NULL DEFAULT 'ATIVO',
         imagem_base64 TEXT,
         imagem_nome_arquivo TEXT,
@@ -142,6 +141,7 @@ class DatabaseHelper {
       )
     ''');
 
+    await _createFinanceTable(db);
     await InitialSeedData.seed(db);
   }
 
@@ -214,6 +214,34 @@ class DatabaseHelper {
         )
       ''');
     }
+
+    if (oldVersion < 5) {
+      await _addColumnIfMissing(
+          db, 'lotes', 'preco_unitario', 'REAL NOT NULL DEFAULT 0');
+      await _addColumnIfMissing(db, 'lotes', 'data_validade', 'TEXT');
+      await _createFinanceTable(db);
+    }
+  }
+
+  Future<void> _createFinanceTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS lancamentos_financeiros (
+        id_local INTEGER PRIMARY KEY AUTOINCREMENT,
+        empresa_chave TEXT NOT NULL,
+        descricao TEXT NOT NULL,
+        categoria TEXT NOT NULL,
+        tipo TEXT NOT NULL CHECK(tipo IN ('RECEITA', 'DESPESA')),
+        valor_centavos INTEGER NOT NULL CHECK(valor_centavos > 0),
+        data_movimento TEXT NOT NULL,
+        data_registro TEXT NOT NULL,
+        data_atualizacao TEXT NOT NULL,
+        status_sincronizacao INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_financeiro_empresa_data
+      ON lancamentos_financeiros(empresa_chave, data_movimento)
+    ''');
   }
 
   Future<void> _addColumnIfMissing(

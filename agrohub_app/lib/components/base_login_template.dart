@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:agrohub_app/components/app_bar.dart';
 import 'package:agrohub_app/components/button.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
@@ -51,7 +52,7 @@ class BaseLoginTemplate extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final contentWidth =
-                ResponsiveLayout.contentMaxWidth(constraints.maxWidth);
+                ResponsiveLayout.contentMaxWidth(constraints.maxWidth, desktop: 520, tablet: 520, mobile: 450);
             final horizontalPadding =
                 ResponsiveLayout.pageHorizontalPadding(constraints.maxWidth);
             return SingleChildScrollView(
@@ -72,14 +73,35 @@ class BaseLoginTemplate extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Center(
-                          child: Image.asset(
-                            'assets/icon/agrohub_logo.png',
-                            width: 128,
-                            height: 128,
-                            fit: BoxFit.contain,
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            child: SvgPicture.asset(
+                              svgPath,
+                              width: 96,
+                              height: 96,
+                              semanticsLabel: title,
+                              colorFilter: ColorFilter.mode(
+                                colorScheme.onPrimaryContainer,
+                                BlendMode.srcIn,
+                              ),
+                              placeholderBuilder: (_) => Icon(
+                                _fallbackIcon,
+                                size: 96,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                              errorBuilder: (_, __, ___) => Icon(
+                                _fallbackIcon,
+                                size: 96,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 32),
                         TextComponent(
                           text: title,
                           color: colorScheme.onSurface,
@@ -89,7 +111,7 @@ class BaseLoginTemplate extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         ...fields,
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 28),
                         Center(
                           child: isLoading
                               ? const CircularProgressIndicator(
@@ -117,5 +139,11 @@ class BaseLoginTemplate extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData get _fallbackIcon {
+    if (svgPath.contains('administrador')) return Icons.admin_panel_settings;
+    if (svgPath.contains('operador')) return Icons.engineering;
+    return Icons.agriculture;
   }
 }

@@ -11,20 +11,13 @@ class FlowNavigation {
   static const String operatorLoginStage = 'OPERATOR_LOGIN';
 
   static Widget rootScreenForSession(SessionData? session) {
-    switch (session?.flowStage) {
-      case adminHomeStage:
-        return const HomeAdmScreen();
-      case operatorHomeStage:
-        return const HomeOperadorScreen();
-      case operatorLoginStage:
-        return const LoginOperadorScreen();
-    }
-
-    if (session?.role == 'OPERADOR') {
+    if (session?.isOperator ?? false) {
       return const HomeOperadorScreen();
     }
-
-    if (session?.role == 'COMERCIO' || session?.role == 'FAZENDA') {
+    if (session?.isAdmin ?? false) {
+      return const HomeAdmScreen();
+    }
+    if (session?.isCompanySession ?? false) {
       return const LoginOperadorScreen();
     }
 
