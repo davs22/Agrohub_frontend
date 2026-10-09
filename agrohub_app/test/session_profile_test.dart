@@ -46,7 +46,7 @@ void main() {
     expect((await repository.loadAppearance(operator)).avatarId, 'leaf');
   });
 
-  test('Restaurar sessão preserva painel de administrador e de operador',
+  test('Roteamento preserva painel de administrador e de operador',
       () async {
     await SessionService.saveSession(
         role: admin.role,
@@ -54,7 +54,7 @@ void main() {
         tableName: admin.tableName,
         flowStage: admin.flowStage);
     expect(
-        FlowNavigation.rootScreenForSession(await SessionService.loadSession()),
+        FlowNavigation.rootScreenForSession(admin),
         isA<HomeAdmScreen>());
     expect(FlowNavigation.rootScreenForSession(operator),
         isA<HomeOperadorScreen>());

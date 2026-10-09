@@ -24,15 +24,15 @@ void main() {
       path.join(directory.path, 'agrohub_offline.db'),
       version: 4,
       onCreate: (database, _) async {
-        await database.execute('CREATE TABLE fazendas (id_local INTEGER PRIMARY KEY, documento TEXT, nome TEXT)');
-        await database.execute('CREATE TABLE comercios (id_local INTEGER PRIMARY KEY, documento TEXT, nome TEXT)');
-        await database.execute('CREATE TABLE operadores (id_local INTEGER PRIMARY KEY, documento_admin TEXT, nome_completo TEXT)');
+        await database.execute('CREATE TABLE fazendas (id_local INTEGER PRIMARY KEY, documento TEXT, nome TEXT, status TEXT)');
+        await database.execute('CREATE TABLE comercios (id_local INTEGER PRIMARY KEY, documento TEXT, nome TEXT, status TEXT)');
+        await database.execute('CREATE TABLE operadores (id_local INTEGER PRIMARY KEY, documento_admin TEXT, nome_completo TEXT, cpf TEXT, status TEXT, telefone TEXT, email TEXT)');
         await database.execute('CREATE TABLE talhoes (id_local INTEGER PRIMARY KEY, usuario_id TEXT, nome TEXT)');
         await database.execute('CREATE TABLE lotes (id_local INTEGER PRIMARY KEY, produto TEXT, quantidade INTEGER, operador_id TEXT, talhao_id TEXT, status TEXT, is_published INTEGER)');
-        await database.insert('fazendas', {'id_local': 1, 'documento': '111', 'nome': 'Fazenda Um'});
-        await database.insert('comercios', {'id_local': 1, 'documento': '222', 'nome': 'Comércio Dois'});
-        await database.insert('operadores', {'id_local': 1, 'documento_admin': '111', 'nome_completo': 'Ana'});
-        await database.insert('operadores', {'id_local': 2, 'documento_admin': '222', 'nome_completo': 'Beto'});
+        await database.insert('fazendas', {'id_local': 1, 'documento': '111', 'nome': 'Fazenda Um', 'status': 'ATIVO'});
+        await database.insert('comercios', {'id_local': 1, 'documento': '222', 'nome': 'Comércio Dois', 'status': 'ATIVO'});
+        await database.insert('operadores', {'id_local': 1, 'documento_admin': '111', 'nome_completo': 'Ana', 'cpf': '1', 'status': 'ATIVO'});
+        await database.insert('operadores', {'id_local': 2, 'documento_admin': '222', 'nome_completo': 'Beto', 'cpf': '2', 'status': 'ATIVO'});
         await database.insert('talhoes', {'id_local': 1, 'usuario_id': '1', 'nome': 'Campo A'});
         await database.insert('talhoes', {'id_local': 2, 'usuario_id': '2', 'nome': 'Campo B'});
         await database.insert('lotes', {'id_local': 1, 'produto': 'Tomate', 'quantidade': 10, 'operador_id': '1', 'talhao_id': '1', 'status': 'ATIVO', 'is_published': 1});
@@ -57,7 +57,7 @@ void main() {
 
   test('Migração mantém dados e separa estoque e lançamentos por empresa', () async {
     final db = await DatabaseHelper.instance.database;
-    expect(await db.getVersion(), 5);
+    expect(await db.getVersion(), 6);
     final existing = await DatabaseHelper.instance.buscarPorId('lotes', 1);
     expect(existing?['produto'], 'Tomate');
     expect(existing?['preco_unitario'], 0);

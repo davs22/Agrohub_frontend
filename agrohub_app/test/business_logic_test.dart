@@ -21,6 +21,14 @@ class MemoryInventory extends InventoryRepository {
   @override
   Future<List<Map<String, dynamic>>> load(String table) async => rows;
   @override
+  Future<InventoryPage> loadPage(String table, {String search = '', String filter = 'all', int page = 0, int pageSize = 16}) async {
+    final selected = rows.where((row) {
+      if (filter == 'empty' && (row['quantidade'] as num) > 0) return false;
+      return InventoryRepository.normalize(row['produto'].toString()).contains(InventoryRepository.normalize(search));
+    }).toList();
+    return InventoryPage(selected.skip(page * pageSize).take(pageSize).toList(), selected.length);
+  }
+  @override
   Future<bool> canManage() async => true;
 }
 
@@ -70,14 +78,14 @@ void main() {
     await model.load();
     expect(model.total, 33);
     expect(model.pageRecords.length, 16);
-    model.goToPage(2);
+    await model.goToPage(2);
     expect(model.pageRecords.single['id_local'], 32);
-    model.search('maca');
+    await model.search('maca');
     expect(model.total, 33);
     expect(model.page, 0);
-    model.setFilter('empty');
+    await model.setFilter('empty');
     expect(model.pageRecords.single['quantidade'], 0);
-    model.search('não existe');
+    await model.search('não existe');
     expect(model.pageCount, 1);
     expect(model.pageRecords, isEmpty);
     model.dispose();

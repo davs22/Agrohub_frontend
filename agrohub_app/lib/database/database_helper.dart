@@ -18,10 +18,9 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
-      onOpen: InitialSeedData.seed,
     );
   }
 
@@ -142,6 +141,7 @@ class DatabaseHelper {
     ''');
 
     await _createFinanceTable(db);
+    await _createInventoryIndexes(db);
     await InitialSeedData.seed(db);
   }
 
@@ -221,6 +221,104 @@ class DatabaseHelper {
       await _addColumnIfMissing(db, 'lotes', 'data_validade', 'TEXT');
       await _createFinanceTable(db);
     }
+    if (oldVersion < 6) {
+      await _createInventoryIndexes(db);
+    }
+  }
+
+  Future<void> _createInventoryIndexes(Database db) async {
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_operators_owner ON operadores(documento_admin, id_local)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_fields_operator ON talhoes(usuario_id, id_local)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_lots_owner ON lotes(operador_id, talhao_id, id_local)');
+    final cartTable = await db.rawQuery("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'carrinho_itens'");
+    if (cartTable.isNotEmpty) {
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_cart_lot ON carrinho_itens(lote_id)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_cart_operator ON carrinho_itens(operador_id)');
+    }
+  }
+
+  Future<bool> changePassword({
+    required String table,
+    required int id,
+    required String document,
+    required String column,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final allowed = table == 'operadores'
+        ? column == 'senha'
+        : const {'fazendas', 'comercios'}.contains(table) &&
+            const {'senha_adm', 'senha_operacao'}.contains(column);
+    if (!allowed) throw ArgumentError('Conta ou perfil inválido.');
+    final db = await database;
+    final changed = await db.update(
+      table,
+      {column: newPassword, 'data_atualizacao': DateTime.now().toIso8601String()},
+      where: 'id_local = ? AND ${table == 'operadores' ? 'cpf' : 'documento'} = ? '
+          'AND status = ? AND $column = ?',
+      whereArgs: [id, document, 'ATIVO', currentPassword],
+    );
+    return changed == 1;
+  }
+
+  Future<void> deleteCompany(String table, int id, String document,
+      String adminPassword) async {
+    if (!const {'fazendas', 'comercios'}.contains(table)) {
+      throw ArgumentError.value(table, 'table');
+    }
+    final db = await database;
+    await db.transaction((txn) async {
+      final company = await txn.query(table,
+          columns: ['id_local'], where: 'id_local = ? AND documento = ? AND status = ? AND senha_adm = ?',
+          whereArgs: [id, document, 'ATIVO', adminPassword], limit: 1);
+      if (company.isEmpty) throw StateError('Empresa não encontrada ou inativa.');
+
+      const ownedOperators =
+          'SELECT CAST(id_local AS TEXT) FROM operadores WHERE documento_admin = ?';
+      const ownedFields =
+          'SELECT CAST(t.id_local AS TEXT) FROM talhoes t '
+          'JOIN operadores fo ON CAST(t.usuario_id AS INTEGER) = fo.id_local '
+          'WHERE fo.documento_admin = ?';
+      const ownedLots =
+          'SELECT CAST(l.id_local AS TEXT) FROM lotes l '
+          'JOIN operadores lo ON CAST(l.operador_id AS INTEGER) = lo.id_local '
+          'JOIN talhoes lt ON CAST(l.talhao_id AS INTEGER) = lt.id_local '
+          'JOIN operadores fo ON CAST(lt.usuario_id AS INTEGER) = fo.id_local '
+          'WHERE lo.documento_admin = ? AND fo.documento_admin = ?';
+
+      final conflictingLots = await txn.rawQuery('''
+        SELECT l.id_local FROM lotes l
+        LEFT JOIN operadores lo ON CAST(l.operador_id AS INTEGER) = lo.id_local
+        LEFT JOIN talhoes lt ON CAST(l.talhao_id AS INTEGER) = lt.id_local
+        LEFT JOIN operadores fo ON CAST(lt.usuario_id AS INTEGER) = fo.id_local
+        WHERE (lo.documento_admin = ? AND COALESCE(fo.documento_admin, '') <> ?)
+           OR (fo.documento_admin = ? AND COALESCE(lo.documento_admin, '') <> ?)
+        LIMIT 1
+      ''', [document, document, document, document]);
+      if (conflictingLots.isNotEmpty) {
+        throw StateError('Há lotes com vínculos inconsistentes entre empresas. Corrija-os antes da exclusão.');
+      }
+
+      // Resolve each relationship before deleting its parent. IDs from
+      // different tables and instancia_id are never treated as company keys.
+      await txn.delete('carrinho_itens',
+          where: 'operador_id IN ($ownedOperators) '
+              'OR operador_lote_id IN ($ownedOperators) '
+              'OR talhao_id IN ($ownedFields) OR lote_id IN ($ownedLots)',
+          whereArgs: [document, document, document, document, document]);
+      await txn.delete('lotes',
+          where: 'operador_id IN ($ownedOperators) AND talhao_id IN ($ownedFields)',
+          whereArgs: [document, document]);
+      await txn.delete('talhoes',
+          where: 'usuario_id IN ($ownedOperators)', whereArgs: [document]);
+      await txn.delete('operadores',
+          where: 'documento_admin = ?', whereArgs: [document]);
+      await txn.delete('lancamentos_financeiros',
+          where: 'empresa_chave = ?', whereArgs: ['$table:$document']);
+      final deleted = await txn.delete(table,
+          where: 'id_local = ? AND documento = ?', whereArgs: [id, document]);
+      if (deleted != 1) throw StateError('Não foi possível excluir a empresa.');
+    });
   }
 
   Future<void> _createFinanceTable(Database db) async {

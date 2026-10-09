@@ -1,4 +1,5 @@
-import 'package:agrohub_app/database/database_helper.dart';
+import 'package:agrohub_app/models/local_account.dart';
+import 'package:agrohub_app/repositories/account_repository.dart';
 import 'package:agrohub_app/services/session_service.dart';
 
 class LocalAuthResult {
@@ -14,6 +15,11 @@ class LocalAuthResult {
 }
 
 class LocalAuthService {
+  LocalAuthService({AccountRepository? accounts})
+      : _accounts = accounts ?? const SqliteAccountRepository();
+
+  final AccountRepository _accounts;
+
   static bool belongsToCompany(LocalAuthResult result, SessionData company) {
     if (!company.isCompanySession ||
         company.tableName !=
@@ -28,93 +34,97 @@ class LocalAuthService {
             result.tableName == company.tableName);
   }
 
-  static Future<LocalAuthResult?> _authenticateCompanyOperator(
-    String tabela,
-    String login,
-    String password,
-  ) async {
-    final conta = await DatabaseHelper.instance.buscarPorColuna(
-      tabela,
-      'documento',
-      login,
-    );
-
-    if (conta != null && conta['senha_operacao'] == password) {
-      return LocalAuthResult(
-        role: tabela == 'fazendas' ? 'FAZENDA' : 'COMERCIO',
-        tableName: tabela,
-        record: conta,
-      );
+  Future<LocalAccount?> validatedAccount(SessionData session) async {
+    if (session.localId == null || session.token != 'LOCAL_SESSION') return null;
+    final account = await _accounts.findById(session.tableName, session.localId!);
+    if (account == null || !account.isActive || account.document != session.login) {
+      return null;
     }
+    if (session.tableName == 'operadores') {
+      if (session.role != 'OPERADOR' || !session.isOperator ||
+          account.ownerDocument == null) {
+        return null;
+      }
+      for (final table in const ['fazendas', 'comercios']) {
+        final owner = await _accounts.findByDocument(table, account.ownerDocument!);
+        if (owner?.isActive ?? false) {
+          return account;
+        }
+      }
+      return null;
+    }
+    if (!session.isCompanySession ||
+        session.tableName != (session.role == 'FAZENDA' ? 'fazendas' : 'comercios') ||
+        session.documento != account.document ||
+        !const {'ADMIN_HOME', 'OPERATOR_HOME', 'OPERATOR_LOGIN', 'ADMIN_LOGIN'}
+            .contains(session.flowStage)) {
+      return null;
+    }
+    return account;
+  }
 
+  Future<bool> isSessionValid(SessionData session) async =>
+      await validatedAccount(session) != null;
+
+  Future<LocalAccount?> authenticateAdminAccount(
+      String login, String password) async {
+    for (final table in const ['comercios', 'fazendas']) {
+      final account = await _accounts.findByDocument(table, login);
+      if (account != null && account.isActive &&
+          account.adminPassword == password) {
+        return account;
+      }
+    }
     return null;
   }
 
-  static Future<LocalAuthResult?> authenticateAdmin(
-    String login,
-    String password,
-  ) async {
-    final comercio = await DatabaseHelper.instance.buscarPorColuna(
-      'comercios',
-      'documento',
-      login,
-    );
-
-    if (comercio != null && comercio['senha_adm'] == password) {
-      return LocalAuthResult(
-        role: 'COMERCIO',
-        tableName: 'comercios',
-        record: comercio,
-      );
+  Future<LocalAccount?> authenticateOperatorAccount(
+      String login, String password) async {
+    final operator = await _accounts.findByDocument('operadores', login);
+    if (operator != null && operator.isActive &&
+        operator.operatorPassword == password &&
+        operator.ownerDocument != null) {
+      for (final table in const ['fazendas', 'comercios']) {
+        final owner = await _accounts.findByDocument(table, operator.ownerDocument!);
+        if (owner?.isActive ?? false) {
+          return operator;
+        }
+      }
     }
-
-    final fazenda = await DatabaseHelper.instance.buscarPorColuna(
-      'fazendas',
-      'documento',
-      login,
-    );
-
-    if (fazenda != null && fazenda['senha_adm'] == password) {
-      return LocalAuthResult(
-        role: 'FAZENDA',
-        tableName: 'fazendas',
-        record: fazenda,
-      );
+    for (final table in const ['comercios', 'fazendas']) {
+      final account = await _accounts.findByDocument(table, login);
+      if (account != null && account.isActive &&
+          account.operationPassword == password) {
+        return account;
+      }
     }
-
     return null;
+  }
+
+  // Compatibility adapter for existing login widgets.
+  static Future<LocalAuthResult?> authenticateAdmin(
+      String login, String password) async {
+    final account = await LocalAuthService().authenticateAdminAccount(login, password);
+    return account == null ? null : _result(account);
   }
 
   static Future<LocalAuthResult?> authenticateOperator(
-    String login,
-    String password,
-  ) async {
-    final operador = await DatabaseHelper.instance.buscarPorColuna(
-      'operadores',
-      'cpf',
-      login,
-    );
-
-    if (operador != null && operador['senha'] == password) {
-      return LocalAuthResult(
-        role: 'OPERADOR',
-        tableName: 'operadores',
-        record: operador,
-      );
-    }
-
-    final comercio =
-        await _authenticateCompanyOperator('comercios', login, password);
-    if (comercio != null) {
-      return comercio;
-    }
-
-    final fazenda =
-        await _authenticateCompanyOperator('fazendas', login, password);
-    if (fazenda != null) {
-      return fazenda;
-    }
-
-    return null;
+      String login, String password) async {
+    final account = await LocalAuthService().authenticateOperatorAccount(login, password);
+    return account == null ? null : _result(account);
   }
+
+  static LocalAuthResult _result(LocalAccount account) => LocalAuthResult(
+        role: account.table == 'operadores'
+            ? 'OPERADOR' : account.table == 'fazendas' ? 'FAZENDA' : 'COMERCIO',
+        tableName: account.table,
+        record: {
+          'id_local': account.id,
+          'documento': account.document,
+          'cpf': account.document,
+          'documento_admin': account.ownerDocument,
+          'nome': account.name,
+          'nome_completo': account.name,
+        },
+      );
 }

@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:agrohub_app/services/local_auth_service.dart';
 
 class SessionData {
   final String role;
@@ -103,7 +104,7 @@ class SessionService {
       return null;
     }
 
-    return SessionData(
+    final session = SessionData(
       role: role,
       login: login,
       tableName: tableName,
@@ -113,6 +114,11 @@ class SessionService {
       documento: prefs.getString(_documentoKey),
       token: prefs.getString(_tokenKey),
     );
+    if (!await LocalAuthService().isSessionValid(session)) {
+      await clearSession();
+      return null;
+    }
+    return session;
   }
 
   static Future<void> clearSession() async {

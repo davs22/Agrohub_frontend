@@ -35,6 +35,12 @@ class ProfileRepository {
     changes.value++;
   }
 
+  Future<void> deleteAppearance(SessionData session) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_key(session));
+    changes.value++;
+  }
+
   Future<Map<String, dynamic>?> loadRecord(SessionData session) async {
     if (!const {'operadores', 'fazendas', 'comercios'}.contains(session.tableName)) {
       return null;

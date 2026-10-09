@@ -2,7 +2,6 @@ import 'package:agrohub_app/components/base_login_template.dart';
 import 'package:agrohub_app/components/drawer_menu.dart';
 import 'package:agrohub_app/components/input.dart';
 import 'package:agrohub_app/components/text.dart';
-import 'package:agrohub_app/pages/edit/pass_operador.dart';
 import 'package:agrohub_app/pages/home_operador_screen.dart';
 import 'package:agrohub_app/pages/login/comercio.dart';
 import 'package:agrohub_app/services/local_auth_service.dart';
@@ -150,11 +149,12 @@ class _LoginOperadorScreenState extends State<LoginOperadorScreen> {
         isLoading: _isLoading,
         onSubmit: _validarEEntrar,
         footerWidget: TextButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const NewPassOperadorScreen()),
-          ),
+          onPressed: () => showDialog<void>(context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Senha esquecida'),
+              content: const Text('A recuperação de senha não está disponível neste aplicativo local. Para alterar a senha, entre na conta com a senha atual e abra Alterar senha no perfil.'),
+              actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendi'))],
+            )),
           child: const Text(
             'Esqueci minha senha',
             style: TextStyle(
